@@ -16,7 +16,7 @@ conda activate pycluster
 ```
 3. Change the directory:
 ```
-cd pycluster
+cd cluster
 ```
 
 4. Install requirements:
@@ -31,6 +31,7 @@ pip install .
 
 6. Go to demo folder and run a demo script to validate installation:
 ```
+cd demo
 python demo_1.py
 ```
 
