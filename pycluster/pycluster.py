@@ -33,20 +33,6 @@ class ClusterObj:
         self.const = None
 
 
-class ClassObj:
-    """Class to store the parameters for class object."""
-
-    def __init__(self):
-        """Function to initialize the parameters of the class ClassObj."""
-        self.K = None
-        self.M = None
-        self.cluster = None
-        self.rissanen = None
-        self.loglikelihood = None
-        self.Rmin = None
-        self.pnk = None
-
-
 def cluster_normalize(mixture):
     """Function to normalize cluster.
 
@@ -353,7 +339,6 @@ def split_classes(mixture):
     classes = [None]*mixture.K
 
     for k in range(mixture.K):
-        classes[k] = ClassObj()
         classes[k] = copy.deepcopy(mixture)
         classes[k].K = 1
         classes[k].cluster = [mixture.cluster[k]]
