@@ -4,6 +4,9 @@ EM Clustering Algorithm
 *This is an EM clustering package for python that is based on the following C package:*
 >https://engineering.purdue.edu/~bouman/software/cluster/
 
+*The documentation for this package is available here:*
+>https://pygmcluster.readthedocs.io/en/latest/
+
 ## Installation Instructions:
 1. 1. Download the source code:
 
