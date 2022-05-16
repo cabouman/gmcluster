@@ -31,7 +31,7 @@ def setup(app):
 
 project = 'PyGMCluster'
 copyright = '2022, Charles Bouman'
-author = 'Mohammad Samin Nur Chowdhury'
+author = 'PyGMCluster Development Team'
 
 # The full version, including alpha/beta/rc tags
 release = '0.0.1'
