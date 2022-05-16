@@ -36,7 +36,7 @@ Downloading and installing from source
 
 	``pip install .``
 
-  Now you can use the package. This ``PyGMCluster`` environment needs to be activated.
+  Now you can use the package. The ``pygmcluster`` environment needs to be activated.
 
 
 5. Validate installation:
