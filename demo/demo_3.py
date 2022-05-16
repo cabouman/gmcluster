@@ -1,17 +1,17 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import pycluster
+import pygmcluster
 
 """
 This file demonstrates a demo of the EM algorithm to estimate the order and parameters of a Gaussian Mixture model 
-and perform unsupervised classification of clusters within the mixture using "pycluster" library.
+and perform unsupervised classification of clusters within the mixture using "PyGMCluster" library.
 """
 
 # Generate demo data
-pixels = pycluster.sim.gen_demo_dataset_1()
+pixels = pygmcluster.sim.gen_demo_dataset_1()
 
 # Estimate optimal order and clustering data
-[mtrs, omtr] = pycluster.gaussian_mixture(pixels, 20, 3, True, 'full', 1e5)
+[mtrs, omtr] = pygmcluster.gaussian_mixture(pixels, 20, 3, True, 'full', 1e5)
 
 print('\noptimal order: ', omtr.K)
 for i in range(omtr.K):
@@ -22,10 +22,10 @@ for i in range(omtr.K):
     print('covar: \n', cluster_obj.R, '\n')
 
 # Split classes
-mtrs = pycluster.split_classes(omtr)
+mtrs = pygmcluster.split_classes(omtr)
 likelihood = np.zeros((np.shape(pixels)[0], len(mtrs)))
 for k in range(len(mtrs)):
-    likelihood[:, k] = pycluster.GM_class_likelihood(mtrs[k], pixels)[:, 0]
+    likelihood[:, k] = pygmcluster.GM_class_likelihood(mtrs[k], pixels)[:, 0]
 
 # Perform classification
 class_list = np.argmax(likelihood, axis=1)

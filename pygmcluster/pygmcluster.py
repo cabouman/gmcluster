@@ -147,7 +147,7 @@ def E_step(mixture, pixels):
 
 
 def M_step(mixture, pixels, est_kind):
-    """Function to perform the M-step of the EM algorithm from the pnk calculated in the E-step, update parameters
+    """Function to perform the M-step of the EM algorithm. From the pnk calculated in the E-step, it updates parameters
     of each cluster.
 
     Args:

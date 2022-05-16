@@ -1,22 +1,22 @@
-# cluster 
+# PyGMCluster 
 EM Clustering Algorithm
 
 *This is an EM clustering package for python that is based on the following C package:*
 >https://engineering.purdue.edu/~bouman/software/cluster/
 
 ## Installation Instructions:
-1. Clone the repository containing the pycluster library from github:
+1. Clone the repository containing the PyGMCluster library from github:
 ```
-git clone https://github.com/cabouman/cluster.git
+git clone https://github.com/cabouman/pygmcluster.git
 ```
 2. Create an empty environment and activate it:
 ```
-conda create -n pycluster python=3.8
-conda activate pycluster
+conda create -n pygmcluster python=3.8
+conda activate pygmcluster
 ```
 3. Change the directory:
 ```
-cd cluster
+cd pygmcluster
 ```
 
 4. Install requirements:

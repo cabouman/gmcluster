@@ -112,7 +112,7 @@ def gen_demo_dataset_1(draw_eigen_vecs=False):
 
 
 def gen_demo_dataset_2():
-    """Function to generate demo Gaussian Mixture model with 3 clusters for a fixed set of observation.
+    """Function to generate 2 demo Gaussian Mixture model each with 3 clusters for a fixed set of observation.
 
     return:
         x_0: a N x M matrix of observation vectors for class 0 training with each row being an M-dimensional observation vector,

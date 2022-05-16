@@ -5,19 +5,19 @@ from setuptools import setup
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-name = 'pycluster'
+name = 'pygmcluster'
 
-# Version number set in pycluster/__init__.py
+# Version number set in pygmcluster/__init__.py
 with open(os.path.join(name,"__init__.py")) as f:
     version = parse(next(filter(lambda line: line.startswith("__version__"), f))).body[0].value.s
 description = "Python code for EM algorithm-based clustering"
 long_description_content_type = "text/markdown"
-url = "https://github.com/cabouman/cluster"
+url = "https://github.com/cabouman/pygmcluster"
 maintainer = "Charles A. Bouman"
 maintainer_email = "charles.bouman@gmail.edu"
 license = "BSD-3-Clause"
 
-packages_dir = 'pycluster'
+packages_dir = 'pygmcluster'
 packages = [packages_dir]
 
 # Set up install for Command line interface
