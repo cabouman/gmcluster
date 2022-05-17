@@ -1,17 +1,17 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import pycluster
+import pygmcluster
 
 """
 This file demonstrates a demo of the EM algorithm to estimate the order, and parameters of a Gaussian Mixture model 
-and perform unsupervised cluster classification with and without decorrelated coordinates using "pycluster" library.
+and perform unsupervised cluster classification with and without decorrelated coordinates using "PyGMCluster" library.
 """
 
 # Generate demo data
-pixels = pycluster.sim.gen_demo_dataset_1(draw_eigen_vecs=True)
+pixels = pygmcluster.sim.gen_demo_dataset_1(draw_eigen_vecs=True)
 
 # Estimate optimal order and clustering data using original coordinates
-[mtrs, omtr] = pycluster.gaussian_mixture(pixels, 20, 0, True, 'full', 1e5)
+[mtrs, omtr] = pygmcluster.gaussian_mixture(pixels, 20, 0, True, 'full', 1e5)
 
 print('\noptimal order: ', omtr.K)
 for i in range(omtr.K):
@@ -22,12 +22,12 @@ for i in range(omtr.K):
     print('covar: \n', cluster_obj.R, '\n')
 
 # Split classes
-mtrs = pycluster.split_classes(omtr)
+mtrs = pygmcluster.split_classes(omtr)
 
 # Perform classification
 likelihood = np.zeros((np.shape(pixels)[0], len(mtrs)))
 for k in range(len(mtrs)):
-    likelihood[:, k] = pycluster.GM_class_likelihood(mtrs[k], pixels)[:, 0]
+    likelihood[:, k] = pygmcluster.GM_class_likelihood(mtrs[k], pixels)[:, 0]
 class_list = np.argmax(likelihood, axis=1)
 for n in range(np.shape(pixels)[0]):
     print(pixels[n, :], ' Log-likelihood: ', likelihood[n, :], ' class: ', class_list[n])
@@ -43,7 +43,7 @@ plt.legend()
 plt.show()
 
 # Estimate optimal order and clustering data using decorrelated coordinates
-[mtrs, omtr] = pycluster.gaussian_mixture_with_decorrelation(pixels, 20, 0, True, 'full', 1e5)
+[mtrs, omtr] = pygmcluster.gaussian_mixture_with_decorrelation(pixels, 20, 0, True, 'full', 1e5)
 
 print('\noptimal order: ', omtr.K)
 for i in range(omtr.K):
@@ -54,12 +54,12 @@ for i in range(omtr.K):
     print('covar: \n', cluster_obj.R, '\n')
 
 # Split classes
-mtrs = pycluster.split_classes(omtr)
+mtrs = pygmcluster.split_classes(omtr)
 
 # Perform classification
 likelihood = np.zeros((np.shape(pixels)[0], len(mtrs)))
 for k in range(len(mtrs)):
-    likelihood[:, k] = pycluster.GM_class_likelihood(mtrs[k], pixels)[:, 0]
+    likelihood[:, k] = pygmcluster.GM_class_likelihood(mtrs[k], pixels)[:, 0]
 class_list = np.argmax(likelihood, axis=1)
 for n in range(np.shape(pixels)[0]):
     print(pixels[n, :], ' Log-likelihood: ', likelihood[n, :], ' class: ', class_list[n])

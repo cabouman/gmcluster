@@ -33,28 +33,14 @@ class ClusterObj:
         self.const = None
 
 
-class ClassObj:
-    """Class to store the parameters for class object."""
-
-    def __init__(self):
-        """Function to initialize the parameters of the class ClassObj."""
-        self.K = None
-        self.M = None
-        self.cluster = None
-        self.rissanen = None
-        self.loglikelihood = None
-        self.Rmin = None
-        self.pnk = None
-
-
 def cluster_normalize(mixture):
     """Function to normalize cluster.
 
     Args:
         mixture: structure containing the Gaussian mixture at a given order
 
-    returns:
-        mixture: structure containing the Gaussian mixture of same order with normalized cluster parameters
+    Returns:
+        class object: structure containing the Gaussian mixture of same order with normalized cluster parameters
         """
     cluster = mixture.cluster
 
@@ -78,16 +64,15 @@ def init_mixture(pixels, K, est_kind, condition_number):
     """Function to initialize the structure containing the Gaussian mixture.
 
     Args:
-        pixels: a N x M matrix of observation vectors with each row being an M-dimensional observation vector,
-            totally N observations
+        pixels: a N x M matrix of observation vectors with each row being an M-dimensional observation vector, totally N observations
         K: order of the mixture
-        est_kind: est_kind = 'diag' constrains the class covariance matrices to be diagonal
-            est_kind = 'full' allows the the class covariance matrices to be full matrices
-        condition_number: a constant scaling that controls the ratio of  mean to minimum diagonal element of the
-            estimated covariance matrices. The default value is 1e5.
+        est_kind: 
+		- est_kind = 'diag' constrains the class covariance matrices to be diagonal
+		- est_kind = 'full' allows the the class covariance matrices to be full matrices
+        condition_number: a constant scaling that controls the ratio of  mean to minimum diagonal element of the estimated covariance matrices. The default value is 1e5.
 
-    returns:
-        mixture: structure containing the initial parameter values for the Gaussian mixture of a given order
+    Returns:
+        class object: structure containing the initial parameter values for the Gaussian mixture of a given order
         """
     [N, M] = np.shape(pixels)
 
@@ -126,17 +111,18 @@ def init_mixture(pixels, K, est_kind, condition_number):
 
 def E_step(mixture, pixels):
     """Function to perform the E-step of the EM algorithm
-        1) calculate pnk = Prob(Xn=k|Yn=yn, theta)
-        2) calculate likelihood = log ( prob(Y=y|theta) )
+    	1) calculate pnk = Prob(Xn=k|Yn=yn, theta)
+    	2) calculate likelihood = log ( prob(Y=y|theta) )
 
     Args:
         mixture: structure containing the Gaussian mixture at a given order
-        pixels: a N x M matrix of observation vectors with each row being an M-dimensional observation vector,
-            totally N observations
+        pixels: a N x M matrix of observation vectors with each row being an M-dimensional observation vector, totally N observations
 
-    returns:
-        mixture: structure containing the Gaussian mixture  of same order with updated pnk
-        likelihood: log ( prob(Y=y|theta) )
+    Returns:
+    	tuple: (mixture, likelihood), where
+    	
+        - mixture: structure containing the Gaussian mixture  of same order with updated pnk
+        - likelihood: log ( prob(Y=y|theta) )
         """
     [N, M] = np.shape(pixels)
     pnk = np.zeros((N, mixture.K))
@@ -161,18 +147,18 @@ def E_step(mixture, pixels):
 
 
 def M_step(mixture, pixels, est_kind):
-    """Function to perform the M-step of the EM algorithm from the pnk calculated in the E-step, update parameters
+    """Function to perform the M-step of the EM algorithm. From the pnk calculated in the E-step, it updates parameters
     of each cluster.
 
     Args:
         mixture: structure containing the Gaussian mixture at a given order
-        pixels: a N x M matrix of observation vectors with each row being an M-dimensional observation vector,
-            totally N observations
-        est_kind: est_kind = 'diag' constrains the class covariance matrices to be diagonal
-            est_kind = 'full' allows the the class covariance matrices to be full matrices
+        pixels: a N x M matrix of observation vectors with each row being an M-dimensional observation vector, totally N observations
+        est_kind: 
+		- est_kind = 'diag' constrains the class covariance matrices to be diagonal
+		- est_kind = 'full' allows the the class covariance matrices to be full matrices
 
-    returns:
-        mixture: structure containing the Gaussian mixture  of same order with updated cluster parameters
+    Returns:
+        class object: structure containing the Gaussian mixture  of same order with updated cluster parameters
         """
     for k in range(mixture.K):
         cluster_obj = mixture.cluster[k]
@@ -204,13 +190,13 @@ def EM_iterate(mixture, pixels, est_kind):
 
     Args:
         mixture: pre-initialized structure for the Gaussian mixture at a given order
-        pixels: a N x M matrix of observation vectors with each row being an M-dimensional observation vector,
-            totally N observations
-        est_kind: est_kind = 'diag' constrains the class covariance matrices to be diagonal
-            est_kind = 'full' allows the the class covariance matrices to be full matrices
+        pixels: a N x M matrix of observation vectors with each row being an M-dimensional observation vector, totally N observations
+        est_kind: 
+		- est_kind = 'diag' constrains the class covariance matrices to be diagonal
+		- est_kind = 'full' allows the the class covariance matrices to be full matrices
 
-    returns:
-        mixture: structure containing the converged Gaussian mixture with updated parameters
+    Returns:
+        class object: structure containing the converged Gaussian mixture with updated parameters
         """
     [N, M] = np.shape(pixels)
 
@@ -242,7 +228,7 @@ def add_cluster(cluster1, cluster2):
         cluster1: the first cluster
         cluster2: the second cluster
 
-    return:
+    Returns:
         cluster3: the combined cluster
         """
     wt1 = cluster1.N / (cluster1.N + cluster2.N)
@@ -268,8 +254,8 @@ def distance(cluster1, cluster2):
         cluster1: the first cluster
         cluster2: the second cluster
 
-    return:
-        dist: distance between the two clusters
+    Returns:
+        float: distance between the two clusters
         """
     cluster3 = add_cluster(cluster1, cluster2)
     dist = cluster1.N * cluster1.const + cluster2.N * cluster2.const - cluster3.N * cluster3.const
@@ -282,10 +268,10 @@ def MDL_reduce_order(mixture, verbose):
 
     Args:
         mixture: structure containing the converged Gaussian mixture at a given order
-        verbose: true/false, return clustering information if true.
+        verbose: true/false, return clustering information if true
 
-    returns:
-        mixture: structure containing the converged Gaussian mixture at an order reduced by one
+    Returns:
+        claass object: structure containing the converged Gaussian mixture at an order reduced by one
         """
     K = mixture.K
     
@@ -316,8 +302,8 @@ def GM_class_likelihood(mixture, Y):
         mixture: a structure representing a Gaussian mixture
         Y: a NxM matrix, each row is an observation vector of dimension M
 
-    returns:
-        ll: a Nx1 matrix with the n-th entry returning the log-likelihood of the n-th observation
+    Returns:
+        ndarray: a Nx1 matrix with the n-th entry returning the log-likelihood of the n-th observation
         """
     [N, M] = np.shape(Y)
     pnk = np.zeros((N, mixture.K))
@@ -340,20 +326,17 @@ def GM_class_likelihood(mixture, Y):
 
 
 def split_classes(mixture):
-    """ Function to splits the Gaussian mixture with K subclasses into K Gaussian mixtures, each of order 1 containing
-    each of the subclasses.
+    """ Function to splits the Gaussian mixture with K subclasses into K Gaussian mixtures, each of order 1 containing each of the subclasses.
 
     Args:
         mixture: a structure representing a Gaussian mixture of order mixture.K
 
     Returns:
-        classes: an array of structures, with each representing a Gaussian mixture of order 1 consisting
-            of one of the original subclasses
+        list: a list of structures, with each representing a Gaussian mixture of order 1 consisting of one of the original subclasses
         """
     classes = [None]*mixture.K
 
     for k in range(mixture.K):
-        classes[k] = ClassObj()
         classes[k] = copy.deepcopy(mixture)
         classes[k].K = 1
         classes[k].cluster = [mixture.cluster[k]]
@@ -366,32 +349,33 @@ def split_classes(mixture):
 
 def gaussian_mixture(pixels, init_K=20, final_K=0, verbose=True, est_kind='full', condition_number=1e5):
     """Function to perform the EM algorithm to estimate the order, and parameters of a Gaussian Mixture model for a
-    given set of observation.
+    given set of observations.
 
     Args:
-        pixels: a N x M matrix of observation vectors with each row being an M-dimensional observation vector,
-            totally N observations
-        init_K: the initial number of clusters to start with and will be reduced to find the optimal order or the
-            desired order based on MDL
-        final_K: the desired final number of clusters for the model. Estimate the optimal order if final_K == 0.
-        verbose: true/false, return clustering information if true.
-        est_kind: est_kind = 'diag' constrains the class covariance matrices to be diagonal
-            est_kind = 'full' allows the the class covariance matrices to be full matrices
+        pixels: a N x M matrix of observation vectors with each row being an M-dimensional observation vector, totally N observations
+        init_K: the initial number of clusters to start with and will be reduced to find the optimal order or the desired order based on MDL
+        final_K: the desired final number of clusters for the model. Estimate the optimal order if final_K == 0
+        verbose: true/false, return clustering information if true
+        est_kind:
+		- est_kind = 'diag' constrains the class covariance matrices to be diagonal
+		- est_kind = 'full' allows the the class covariance matrices to be full matrices
         condition_number: a constant scaling that controls the ratio of  mean to minimum diagonal element of the
-            estimated covariance matrices. The default value is 1e5.
+            estimated covariance matrices. The default value is 1e5
 
-    returns:
-        mixture: a list of mixture structures with each containing the converged Gaussian mixture at a given order
-            mixture[l].K: order of the mixture
-            mixture[l].M: dimension of observation vectors
-            mixture[l].cluster: an array of cluster structures with each containing the converged cluster parameters
-            mixture[l].rissanen: converged MDL(K)
-            mixture[l].loglikelihood: ln( Prob{Y=y|K, theta*} )
-            mixture[l].Rmin: intermediate parameter dependent on condition number
-            mixture[l].pnk: Prob(Xn=k|Yn=yn, theta)
-        opt_mixture: one of the elements in the mixture list.
-            If final_K > 0, opt_mixture = mixture[0] and is the mixture with order final_K.
-            If final_K == 0, opt_mixture is the one in mixture with minimum MDL
+    Returns:
+    	tuple: (mixture, opt_mixture), where
+    	
+        - mixture: a list of mixture structures with each containing the converged Gaussian mixture at a given order
+		- mixture[l].K: order of the mixture
+		- mixture[l].M: dimension of observation vectors
+		- mixture[l].cluster: an array of cluster structures with each containing the converged cluster parameters
+		- mixture[l].rissanen: converged MDL(K)
+		- mixture[l].loglikelihood: ln( Prob{Y=y|K, theta*} )
+		- mixture[l].Rmin: intermediate parameter dependent on condition number
+		- mixture[l].pnk: Prob(Xn=k|Yn=yn, theta)
+        - opt_mixture: one of the elements in the mixture list
+		- If final_K > 0, opt_mixture = mixture[0] and is the mixture with order final_K
+		- If final_K == 0, opt_mixture is the one in mixture with minimum MDL
         """
     if (isinstance(init_K, int) is False) or init_K <= 0:
         print('GaussianMixture: initial number of clusters init_K must be a positive integer')
@@ -456,33 +440,32 @@ def gaussian_mixture(pixels, init_K=20, final_K=0, verbose=True, est_kind='full'
 
 
 def gaussian_mixture_with_decorrelation(pixels, init_K=20, final_K=0, verbose=True, est_kind='full', condition_number=1e5):
-    """Function to perform the EM algorithm to estimate the order, and parameters of a Gaussian Mixture model for a
-    given set of observation. The parameters are estimated from decorrelated coordinates to condition the problem better.
+    """Function to perform the EM algorithm to estimate the order, and parameters of a Gaussian Mixture model for a given set of observations using decorrelated coordinates to condition the problem better.
 
     Args:
-        pixels: a N x M matrix of observation vectors with each row being an M-dimensional observation vector,
-            totally N observations
-        init_K: the initial number of clusters to start with and will be reduced to find the optimal order or the
-            desired order based on MDL
-        final_K: the desired final number of clusters for the model. Estimate the optimal order if final_K == 0.
-        verbose: true/false, return clustering information if true.
-        est_kind: est_kind = 'diag' constrains the class covariance matrices to be diagonal
-            est_kind = 'full' allows the the class covariance matrices to be full matrices
-        condition_number: a constant scaling that controls the ratio of  mean to minimum diagonal element of the
-            estimated covariance matrices. The default value is 1e5.
+        pixels: a N x M matrix of observation vectors with each row being an M-dimensional observation vector, totally N observations
+        init_K: the initial number of clusters to start with and will be reduced to find the optimal order or the desired order based on MDL
+        final_K: the desired final number of clusters for the model. Estimate the optimal order if final_K == 0
+        verbose: true/false, return clustering information if true
+        est_kind:
+		- est_kind = 'diag' constrains the class covariance matrices to be diagonal 
+		- est_kind = 'full' allows the the class covariance matrices to be full matrices
+        condition_number: a constant scaling that controls the ratio of  mean to minimum diagonal element of the estimated covariance matrices. The default value is 1e5
 
-    returns:
-        mixture: a list of mixture structures with each containing the converged Gaussian mixture at a given order
-            mixture[l].K: order of the mixture
-            mixture[l].M: dimension of observation vectors
-            mixture[l].cluster: an array of cluster structures with each containing the converged cluster parameters
-            mixture[l].rissanen: converged MDL(K)
-            mixture[l].loglikelihood: ln( Prob{Y=y|K, theta*} )
-            mixture[l].Rmin: intermediate parameter dependent on condition number
-            mixture[l].pnk: Prob(Xn=k|Yn=yn, theta)
-        opt_mixture: one of the elements in the mixture list.
-            If final_K > 0, opt_mixture = mixture[0] and is the mixture with order final_K.
-            If final_K == 0, opt_mixture is the one in mixture with minimum MDL
+    Returns:
+    	tuple: (mixture, opt_mixture), where
+    	
+        - mixture: a list of mixture structures with each containing the converged Gaussian mixture at a given order
+		- mixture[l].K: order of the mixture
+		- mixture[l].M: dimension of observation vectors
+		- mixture[l].cluster: an array of cluster structures with each containing the converged cluster parameters
+		- mixture[l].rissanen: converged MDL(K)
+		- mixture[l].loglikelihood: ln( Prob{Y=y|K, theta*} )
+		- mixture[l].Rmin: intermediate parameter dependent on condition number
+		- mixture[l].pnk: Prob(Xn=k|Yn=yn, theta)
+        - opt_mixture: one of the elements in the mixture list
+		- If final_K > 0, opt_mixture = mixture[0] and is the mixture with order final_K
+		- If final_K == 0, opt_mixture is the one in mixture with minimum MDL
         """
     if (isinstance(init_K, int) is False) or init_K <= 0:
         print('GaussianMixture: initial number of clusters init_K must be a positive integer')

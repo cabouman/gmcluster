@@ -3,7 +3,7 @@ import numpy as np
 
 
 def GMM(N, Pi, mu1, mu2, mu3, R1, R2, R3):
-    """Function to generate Gaussian Mixture model with 3 clusters for a given number of observation.
+    """Function to generate Gaussian Mixture model with 3 clusters for a given number of observations.
 
     Args:
         N: number of observation
@@ -15,9 +15,8 @@ def GMM(N, Pi, mu1, mu2, mu3, R1, R2, R3):
         R2: covariance matrix of cluster 2
         R3: covariance matrix of cluster 3
 
-    return:
-        x: a M x N matrix of observation vectors with each column being an M-dimensional observation vector,
-            totally N observations
+    Returns:
+        ndarray: a M x N matrix of observation vectors with each column being an M-dimensional observation vector, totally N observations
         """
     Pi_0 = Pi[0]
     Pi_1 = Pi[1]
@@ -54,8 +53,7 @@ def draw_eigen_vecs_for_cov(pixels):
     """Function to draw eigen vectors.
 
     Args:
-        pixels: a N x M matrix of observation vectors with each row being an M-dimensional observation vector,
-            totally N observations.
+        pixels: a N x M matrix of observation vectors with each row being an M-dimensional observation vector, totally N observations
         """
 
     smean = np.mean(pixels, axis=0)
@@ -74,14 +72,13 @@ def draw_eigen_vecs_for_cov(pixels):
 
 
 def gen_demo_dataset_1(draw_eigen_vecs=False):
-    """Function to generate demo Gaussian Mixture model with 3 clusters for a fixed set of observation.
+    """Function to generate demo Gaussian Mixture model with 3 clusters for a fixed set of observations.
 
     Args:
         draw_eigen_vecs: draw eigen vectors on top of the data if set to True
 
-    return:
-        x: a N x M matrix of observation vectors with each row being an M-dimensional observation vector,
-            totally N observations
+    Returns:
+        ndarray: a N x M matrix of observation vectors with each row being an M-dimensional observation vector, totally N observations
         """
     N = 500
 
@@ -112,15 +109,14 @@ def gen_demo_dataset_1(draw_eigen_vecs=False):
 
 
 def gen_demo_dataset_2():
-    """Function to generate demo Gaussian Mixture model with 3 clusters for a fixed set of observation.
+    """Function to generate training and testing samples from 2 demo Gaussian Mixture model each with 3 clusters for a fixed set of observations.
 
-    return:
-        x_0: a N x M matrix of observation vectors for class 0 training with each row being an M-dimensional observation vector,
-            totally N observations
-        x_1: a N x M matrix of observation vectors for class 1 training with each row being an M-dimensional observation vector,
-            totally N observations
-        y: a (N/10) x M matrix of observation vectors for testing with each row being an M-dimensional observation vector,
-            totally N observations
+    Returns:
+        tuple: (x_0, x_1, y), where
+        
+        - x_0: a N x M matrix of observation vectors for class 0 training with each row being an M-dimensional observation vector, totally N observations
+        - x_1: a N x M matrix of observation vectors for class 1 training with each row being an M-dimensional observation vector, totally N observations
+        - y: a (N/10) x M matrix of observation vectors from both classes for testing with each row being an M-dimensional observation vector, totally N/10 observations
         """
     N = 500
 
