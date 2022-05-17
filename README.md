@@ -8,7 +8,7 @@ EM Clustering Algorithm
 >https://pygmcluster.readthedocs.io/en/latest/
 
 ## Installation Instructions:
-1. 1. Download the source code:
+1. Download the source code:
 
   In order to download the python code, move to a directory of your choice and run the following two commands.
   
