@@ -12,10 +12,10 @@ EM Clustering Algorithm
 
   Move to a directory of your choice and run the following two commands.
 
-```
-git clone https://github.com/cabouman/pygmcluster.git
-cd pygmcluster
-```
+	```
+	git clone https://github.com/cabouman/pygmcluster.git
+	cd pygmcluster
+	```
 	
   Alternatively, you can directly clone from GitHub and then enter the repository.
 
@@ -23,43 +23,43 @@ cd pygmcluster
 
   Follow any of the two methods.
 
-2.1. Easy installation:
+* 2.1. Easy installation:
 
   If you have Anaconda installed, run the following commands.
 	  
-```
-cd dev_scripts
-source ./install_all.sh
-cd ..
-```
+	```
+	cd dev_scripts
+	source ./install_all.sh
+	cd ..
+	```
 		
-2.2. Manual installation:
+* 2.2. Manual installation:
 
-2.2.1 Create a Virtual Environment:
+	- 2.2.1 Create a Virtual Environment:
 
-  It is recommended that you install the package to a virtual environment.
-  If you have Anaconda installed, you can run the following.
+	  It is recommended that you install the package to a virtual environment.
+	  If you have Anaconda installed, you can run the following.
 
-```
-conda create --name pygmcluster python=3.8
-conda activate pygmcluster
-```
+		```
+		conda create --name pygmcluster python=3.8
+		conda activate pygmcluster
+		```
 
-2.2.2 Install the dependencies:
+	- 2.2.2 Install the dependencies:
 
-  In order to install the dependencies, use the following command.
+	  In order to install the dependencies, use the following command.
 
-```
-pip install -r requirements.txt
-```
+		```
+		pip install -r requirements.txt
+		```
 
-2.2.3 Install the PyGMCluster package:
+	- 2.2.3 Install the PyGMCluster package:
 
-  Use the following command to install the package.
+	  Use the following command to install the package.
 
-```
-pip install .
-```
+		```
+		pip install .
+		```
 
   The installation is done. The ``pygmcluster`` environment needs to be activated every time you use the package.
 
@@ -68,10 +68,13 @@ pip install .
 
   You can validate the installation by running a demo script.
   
-```
-cd demo
-python demo_1.py
-```
+	```
+	cd demo
+	python demo_1.py
+	```
+
+
+
 
 
 
