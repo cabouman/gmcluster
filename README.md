@@ -57,7 +57,8 @@ pip install -r requirements.txt
 
   Use the following command to install the package.
 
-```pip install .
+```
+pip install .
 ```
 
   The installation is done. The ``pygmcluster`` environment needs to be activated every time you use the package.
