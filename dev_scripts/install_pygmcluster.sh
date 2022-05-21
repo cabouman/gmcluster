@@ -2,7 +2,7 @@
 # This script just installs PyGMCluster along with requirements of PyGMCluster.
 
 cd ..
-conda run -n pygmcluster pip install -r requirements.txt
-conda run -n pygmcluster pip install .
+pip install -r requirements.txt
+pip install .
 cd dev_scripts
 
