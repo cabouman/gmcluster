@@ -12,10 +12,10 @@ EM Clustering Algorithm
 
   Move to a directory of your choice and run the following two commands.
 
-	```
-	git clone https://github.com/cabouman/pygmcluster.git
-	cd pygmcluster
-	```
+```
+git clone https://github.com/cabouman/pygmcluster.git
+cd pygmcluster
+```
 	
   Alternatively, you can directly clone from GitHub and then enter the repository.
 
@@ -68,10 +68,10 @@ EM Clustering Algorithm
 
   You can validate the installation by running a demo script.
   
-	```
-	cd demo
-	python demo_1.py
-	```
+```
+cd demo
+python demo_1.py
+```
 
 
 
