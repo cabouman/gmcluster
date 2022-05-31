@@ -26,10 +26,19 @@ Indices and tables
 .. toctree::
    :hidden:
    :maxdepth: 4
+   :caption: Background
+
+   overview
+   theory
+   
+.. toctree::
+   :hidden:
+   :maxdepth: 4
    :caption: User Guide
 
    install
    api
+   demo_details
 
 .. toctree::
    :hidden:

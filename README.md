@@ -5,7 +5,7 @@ EM Clustering Algorithm
 >https://engineering.purdue.edu/~bouman/software/cluster/
 
 *The documentation for this package is available here:*
->https://pygmcluster.readthedocs.io/en/latest/
+>https://pygmcluster.readthedocs.io/
 
 ## Installation Instructions:
 1. Download the source code:
