@@ -1,5 +1,7 @@
-.. include:: ../../README.rst
-  :start-after: docs-include-ref
+PyGMCluster
+-----------
+**PyGMCluster** is an easy to use python-based library for EM clustering.
+
 
 System Requirements
 -------------------
