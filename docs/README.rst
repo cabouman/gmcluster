@@ -2,6 +2,9 @@ PyGMCluster
 -----------
 **PyGMCluster** is an easy to use python-based library for EM clustering.
 
+The original C package is available here:
+https://engineering.purdue.edu/~bouman/software/cluster/
+
 
 System Requirements
 -------------------
