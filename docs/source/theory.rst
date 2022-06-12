@@ -109,7 +109,7 @@ substituting in for :math:`\log p_{y,x}(y, x|\theta)` and simplifying.
 	
 where :math:`\bar N_k, \bar\mu_k,` and :math:`\bar R_k` are as given above.
 	
-We will first consider the maximization of :math:`Q(\theta; \theta^{(i)})` with respect to :math:`\theta \in \Omega^{(K)}. This maximization of :math:`Q` may be done using Lagrange multipliers and results in the update equations
+We will first consider the maximization of :math:`Q(\theta; \theta^{(i)})` with respect to :math:`\theta \in \Omega^{(K)}`. This maximization of :math:`Q` may be done using Lagrange multipliers and results in the update equations
 
 .. math::
 	(\pi^{(i+1)}, \mu^{(i+1)}, R^{(i+1)}) & = \arg \max_{(\pi,\mu,R) \in \Omega^{(K)}} Q(\theta; \theta^{(i)}) \\
