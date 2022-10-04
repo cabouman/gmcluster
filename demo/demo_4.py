@@ -11,7 +11,7 @@ and perform unsupervised cluster classification with and without decorrelated co
 pixels = pygmcluster.sim.gen_demo_dataset_1(draw_eigen_vecs=True)
 
 # Estimate optimal order and clustering data using original coordinates
-[mtrs, omtr] = pygmcluster.gaussian_mixture(pixels, 20, 0, True, 'full', 1e5)
+[mtrs, omtr] = pygmcluster.gaussian_mixture(pixels)
 
 print('\noptimal order: ', omtr.K)
 for i in range(omtr.K):
@@ -43,7 +43,7 @@ plt.legend()
 plt.show()
 
 # Estimate optimal order and clustering data using decorrelated coordinates
-[mtrs, omtr] = pygmcluster.gaussian_mixture_with_decorrelation(pixels, 20, 0, True, 'full', 1e5)
+[mtrs, omtr] = pygmcluster.gaussian_mixture_with_decorrelation(pixels)
 
 print('\noptimal order: ', omtr.K)
 for i in range(omtr.K):
