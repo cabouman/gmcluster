@@ -81,19 +81,28 @@ def init_mixture(data, K, est_kind, condition_number):
     mixture.K = K
     mixture.M = M
 
+    # Compute sample convariance for entire data set
     R = (N - 1) * np.cov(data, rowvar=False) / N
     if est_kind == 'diag':
         R = np.diag(np.diag(R))
 
-    mixture.Rmin = np.mean(np.diag(R)) / condition_number
+    # Ensure that the condition number of R is >= condition_number
+    alpha = 1.0 / condition_number
+    mixture.Rmin = alpha * np.mean(np.diag(R))
+    R = (1.0 - alpha) * R + alpha * np.eye(mixture.M)
 
+    # Allocate and array of K clusters
     cluster = [None]*K
+
+    # Initalize first element of cluster
     cluster_obj = ClusterObj()
     cluster_obj.N = 0
     cluster_obj.pb = 1/K
     cluster_obj.mu = np.expand_dims(data[0, :], 1)
-    cluster_obj.R = R + mixture.Rmin * np.eye(mixture.M)
+    cluster_obj.R = R
     cluster[0] = cluster_obj
+
+    # Initialize remaining clusters in array
     if K > 1:
         period = (N - 1) / (K - 1)
         for k in range(1, K):
@@ -394,7 +403,7 @@ def transform_back_to_original_coordinates(opt_mixture, T, smean):
     return opt_mixture
 
 
-def estimate_gaussian_mixture(data, init_K=20, final_K=0, verbose=True, est_kind='full', decorrelate_coordinates=False, condition_number=1e5):
+def estimate_gaussian_mixture(data, init_K=20, final_K=0, verbose=True, est_kind='full', decorrelate_coordinates=False, condition_number=1e4):
     """Function to perform the EM algorithm to estimate the order, and parameters of a Gaussian Mixture model for a
     given set of observations.
 
@@ -407,7 +416,7 @@ def estimate_gaussian_mixture(data, init_K=20, final_K=0, verbose=True, est_kind
             - est_kind = 'diag' constrains the class covariance matrices to be diagonal
             - est_kind = 'full' allows the class covariance matrices to be full matrices
         decorrelate_coordinates(bool,optional): true/false, decorrelate coordinates to better condition the problem if true
-        condition_number(float,optional): a constant that controls the ratio of the mean to the minimum of the diagonal elements of the
+        condition_number(float,optional): a constant >= 1.0 that controls the ratio of the mean to the minimum of the diagonal elements of the
             initial covariance matrices. The default value is 1e5
 
     Returns:
