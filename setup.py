@@ -20,10 +20,6 @@ license = "BSD-3-Clause"
 packages_dir = 'pygmcluster'
 packages = [packages_dir]
 
-# Set up install for Command line interface
-install_requires = ['numpy', 'matplotlib']  # external package dependencies
-
-
 setup(name=name,
       version=version,
       description=description,
@@ -33,6 +29,5 @@ setup(name=name,
       maintainer=maintainer,
       maintainer_email=maintainer_email,
       license=license,
-      packages=packages,
-      install_requires=install_requires)
+      packages=packages)
 
