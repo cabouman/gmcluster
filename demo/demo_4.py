@@ -11,7 +11,7 @@ and perform unsupervised cluster classification with and without decorrelated co
 pixels = pygmcluster.sim.gen_demo_dataset_1(draw_eigen_vecs=True)
 
 # Estimate optimal order and clustering data using original coordinates
-[mtrs, omtr] = pygmcluster.gaussian_mixture(pixels, 20, 0, True, 'full', 1e5)
+omtr = pygmcluster.estimate_gaussian_mixture(pixels)
 
 print('\noptimal order: ', omtr.K)
 for i in range(omtr.K):
@@ -27,7 +27,7 @@ mtrs = pygmcluster.split_classes(omtr)
 # Perform classification
 likelihood = np.zeros((np.shape(pixels)[0], len(mtrs)))
 for k in range(len(mtrs)):
-    likelihood[:, k] = pygmcluster.GM_class_likelihood(mtrs[k], pixels)[:, 0]
+    likelihood[:, k] = pygmcluster.compute_GM_class_likelihood(mtrs[k], pixels)[:, 0]
 class_list = np.argmax(likelihood, axis=1)
 for n in range(np.shape(pixels)[0]):
     print(pixels[n, :], ' Log-likelihood: ', likelihood[n, :], ' class: ', class_list[n])
@@ -43,7 +43,7 @@ plt.legend()
 plt.show()
 
 # Estimate optimal order and clustering data using decorrelated coordinates
-[mtrs, omtr] = pygmcluster.gaussian_mixture_with_decorrelation(pixels, 20, 0, True, 'full', 1e5)
+omtr = pygmcluster.estimate_gaussian_mixture(pixels, decorrelate_coordinates=True)
 
 print('\noptimal order: ', omtr.K)
 for i in range(omtr.K):
@@ -59,7 +59,7 @@ mtrs = pygmcluster.split_classes(omtr)
 # Perform classification
 likelihood = np.zeros((np.shape(pixels)[0], len(mtrs)))
 for k in range(len(mtrs)):
-    likelihood[:, k] = pygmcluster.GM_class_likelihood(mtrs[k], pixels)[:, 0]
+    likelihood[:, k] = pygmcluster.compute_GM_class_likelihood(mtrs[k], pixels)[:, 0]
 class_list = np.argmax(likelihood, axis=1)
 for n in range(np.shape(pixels)[0]):
     print(pixels[n, :], ' Log-likelihood: ', likelihood[n, :], ' class: ', class_list[n])
