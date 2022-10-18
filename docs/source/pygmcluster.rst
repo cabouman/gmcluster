@@ -1,7 +1,7 @@
 pygmcluster
 -----------
 .. automodule:: pygmcluster
-   :members: gaussian_mixture, gaussian_mixture_with_decorrelation, GM_class_likelihood, split_classes
+   :members: gaussian_mixture, GM_class_likelihood, split_classes
    :member-order: bysource
    :undoc-members:
    :show-inheritance:
@@ -10,7 +10,6 @@ pygmcluster
 
    .. autosummary::
       gaussian_mixture
-      gaussian_mixture_with_decorrelation
       GM_class_likelihood
       split_classes
         

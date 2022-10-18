@@ -11,7 +11,7 @@ and perform unsupervised classification of clusters within the mixture using "Py
 pixels = pygmcluster.sim.gen_demo_dataset_1()
 
 # Estimate optimal order and clustering data
-[mtrs, omtr] = pygmcluster.gaussian_mixture(pixels)
+omtr = pygmcluster.gaussian_mixture(pixels)
 
 print('\noptimal order: ', omtr.K)
 for i in range(omtr.K):

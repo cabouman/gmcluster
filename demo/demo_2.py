@@ -12,7 +12,7 @@ the 2 mixture models using "PyGMCluster" library.
 train_data_0, train_data_1, test_data = pygmcluster.gen_demo_dataset_2()
 
 # Estimate optimal order and clustering data for class 0
-[mtrs, class_0] = pygmcluster.gaussian_mixture(train_data_0)
+class_0 = pygmcluster.gaussian_mixture(train_data_0)
 
 print('\noptimal order: ', class_0.K)
 for i in range(class_0.K):
@@ -24,7 +24,7 @@ for i in range(class_0.K):
 
 
 # Estimate optimal order and clustering data for class 1
-[mtrs, class_1] = pygmcluster.gaussian_mixture(train_data_1)
+class_1 = pygmcluster.gaussian_mixture(train_data_1)
 
 print('\noptimal order: ', class_1.K)
 for i in range(class_1.K):

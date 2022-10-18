@@ -347,35 +347,78 @@ def split_classes(mixture):
     return classes
 
 
-def gaussian_mixture(pixels, init_K=20, final_K=0, verbose=True, est_kind='full', condition_number=1e5):
+def decorrelate_and_normalize(pixels):
+    """ Function to decorrelate and normalize data
+
+    Args:
+        pixels: an N x M matrix of observation vectors with each row being an M-dimensional observation vector, totally N observations
+
+    Returns:
+        tuple: (pixels, T, smean), where
+        - pixels: decorrelated and normalized observation vectors
+        - T: transformation matrix
+        - smean: mean values
+        """
+    # Decorrelate and normalize the data
+    smean = np.mean(pixels, axis=0)
+    scov = np.cov(pixels, rowvar=False)
+    D, E = np.linalg.eig(scov)
+    D = np.diag(D)
+    T = np.matmul(E, np.linalg.inv(np.sqrt(D)))
+    pixels = np.matmul(
+        pixels - np.transpose(np.matmul(np.diag(smean), np.ones((np.shape(pixels)[1], np.shape(pixels)[0])))), T)
+
+    return pixels, T, smean
+
+
+def transform_back_to_original_coordinates(opt_mixture, T, smean):
+    """ Function to transform the optimum mixture parameters to correspond to original coordinates
+
+    Args:
+        opt_mixture: a structure representing the optimum Gaussian mixture parameters corresponding to decorrelated coordinates
+        T: transformation matrix
+        smean: mean values
+
+    Returns:
+        class object: a structure representing the optimum Gaussian mixture parameters corresponding to original coordinates
+        """
+    invT = np.linalg.inv(T)
+    # Transform the parameters back to original coordinates
+    for k in range(opt_mixture.K):
+        opt_mixture.cluster[k].mu = np.transpose(np.matmul(np.transpose(opt_mixture.cluster[k].mu), invT) + smean)
+        opt_mixture.cluster[k].R = np.matmul(np.transpose(invT), np.matmul(opt_mixture.cluster[k].R, invT))
+        opt_mixture.cluster[k].invR = np.matmul(T, np.matmul(opt_mixture.cluster[k].invR, np.transpose(T)))
+        opt_mixture.cluster[k].const = opt_mixture.cluster[k].const - np.log(
+            np.linalg.det(np.matmul(np.transpose(invT), invT))) / 2
+
+    return opt_mixture
+
+
+def gaussian_mixture(pixels, init_K=20, final_K=0, verbose=True, est_kind='full', decorrelate_coordinates=False, condition_number=1e5):
     """Function to perform the EM algorithm to estimate the order, and parameters of a Gaussian Mixture model for a
     given set of observations.
 
     Args:
-        pixels: a N x M matrix of observation vectors with each row being an M-dimensional observation vector, totally N observations
+        pixels: an N x M matrix of observation vectors with each row being an M-dimensional observation vector, totally N observations
         init_K: the initial number of clusters to start with and will be reduced to find the optimal order or the desired order based on MDL
         final_K: the desired final number of clusters for the model. Estimate the optimal order if final_K == 0
         verbose: true/false, return clustering information if true
         est_kind:
-		- est_kind = 'diag' constrains the class covariance matrices to be diagonal
-		- est_kind = 'full' allows the the class covariance matrices to be full matrices
+            - est_kind = 'diag' constrains the class covariance matrices to be diagonal
+            - est_kind = 'full' allows the the class covariance matrices to be full matrices
+        decorrelate_coordinates: true/false, decorrelate coordinates to better condition the problem if true
         condition_number: a constant scaling that controls the ratio of  mean to minimum diagonal element of the
             estimated covariance matrices. The default value is 1e5
 
     Returns:
-    	tuple: (mixture, opt_mixture), where
-    	
-        - mixture: a list of mixture structures with each containing the converged Gaussian mixture at a given order
-		- mixture[l].K: order of the mixture
-		- mixture[l].M: dimension of observation vectors
-		- mixture[l].cluster: an array of cluster structures with each containing the converged cluster parameters
-		- mixture[l].rissanen: converged MDL(K)
-		- mixture[l].loglikelihood: ln( Prob{Y=y|K, theta*} )
-		- mixture[l].Rmin: intermediate parameter dependent on condition number
-		- mixture[l].pnk: Prob(Xn=k|Yn=yn, theta)
-        - opt_mixture: one of the elements in the mixture list
-		- If final_K > 0, opt_mixture = mixture[0] and is the mixture with order final_K
-		- If final_K == 0, opt_mixture is the one in mixture with minimum MDL
+    	class object: a structure with optimum Gaussian mixture parameters, where
+            - opt_mixture.K: order of the mixture
+            - opt_mixture.M: dimension of observation vectors
+            - opt_mixture.cluster: an array of cluster structures with each containing the converged cluster parameters
+            - opt_mixture.rissanen: converged MDL(K)
+            - opt_mixture.loglikelihood: ln( Prob{Y=y|K, theta*} )
+            - opt_mixture.Rmin: intermediate parameter dependent on condition number
+            - opt_mixture.pnk: Prob(Xn=k|Yn=yn, theta)
         """
     if (isinstance(init_K, int) is False) or init_K <= 0:
         print('GaussianMixture: initial number of clusters init_K must be a positive integer')
@@ -391,6 +434,9 @@ def gaussian_mixture(pixels, init_K=20, final_K=0, verbose=True, est_kind='full'
     if (est_kind != 'full') and (est_kind != 'diag'):
         print('GaussianMixture: estimator kind can only be diag or full')
         return
+
+    if decorrelate_coordinates:
+        pixels, T, smean = decorrelate_and_normalize(pixels)
 
     [N, M] = np.shape(pixels)
 
@@ -436,90 +482,7 @@ def gaussian_mixture(pixels, init_K=20, final_K=0, verbose=True, est_kind='full'
                 opt_l = l
         opt_mixture = copy.deepcopy(mixture[opt_l])
 
-    return mixture, opt_mixture
+    if decorrelate_coordinates:
+        opt_mixture = transform_back_to_original_coordinates(opt_mixture, T, smean)
 
-
-def gaussian_mixture_with_decorrelation(pixels, init_K=20, final_K=0, verbose=True, est_kind='full', condition_number=1e5):
-    """Function to perform the EM algorithm to estimate the order, and parameters of a Gaussian Mixture model for a given set of observations using decorrelated coordinates to condition the problem better.
-
-    Args:
-        pixels: a N x M matrix of observation vectors with each row being an M-dimensional observation vector, totally N observations
-        init_K: the initial number of clusters to start with and will be reduced to find the optimal order or the desired order based on MDL
-        final_K: the desired final number of clusters for the model. Estimate the optimal order if final_K == 0
-        verbose: true/false, return clustering information if true
-        est_kind:
-		- est_kind = 'diag' constrains the class covariance matrices to be diagonal 
-		- est_kind = 'full' allows the the class covariance matrices to be full matrices
-        condition_number: a constant scaling that controls the ratio of  mean to minimum diagonal element of the estimated covariance matrices. The default value is 1e5
-
-    Returns:
-    	tuple: (mixture, opt_mixture), where
-    	
-        - mixture: a list of mixture structures with each containing the converged Gaussian mixture at a given order
-		- mixture[l].K: order of the mixture
-		- mixture[l].M: dimension of observation vectors
-		- mixture[l].cluster: an array of cluster structures with each containing the converged cluster parameters
-		- mixture[l].rissanen: converged MDL(K)
-		- mixture[l].loglikelihood: ln( Prob{Y=y|K, theta*} )
-		- mixture[l].Rmin: intermediate parameter dependent on condition number
-		- mixture[l].pnk: Prob(Xn=k|Yn=yn, theta)
-        - opt_mixture: one of the elements in the mixture list
-		- If final_K > 0, opt_mixture = mixture[0] and is the mixture with order final_K
-		- If final_K == 0, opt_mixture is the one in mixture with minimum MDL
-        """
-    if (isinstance(init_K, int) is False) or init_K <= 0:
-        print('GaussianMixture: initial number of clusters init_K must be a positive integer')
-        return
-    if (isinstance(final_K, int) is False) or final_K < 0:
-        print('GaussianMixture: final number of clusters final_K must be a positive integer or zero')
-        return
-    if final_K > init_K:
-        print('GaussianMixture: final_K cannot be greater than init_K')
-        return
-    if pixels.dtype != float:
-        pixels = pixels.astype(float)
-    if (est_kind != 'full') and (est_kind != 'diag'):
-        print('GaussianMixture: estimator kind can only be diag or full')
-        return
-
-    # Decorrelate and normalize the data
-    smean = np.mean(pixels, axis=0)
-    scov = np.cov(pixels, rowvar=False)
-    D, E = np.linalg.eig(scov)
-    D = np.diag(D)
-    T = np.matmul(E, np.linalg.inv(np.sqrt(D)))
-    invT = np.linalg.inv(T)
-    pixels = np.matmul(pixels - np.transpose(np.matmul(np.diag(smean), np.ones((np.shape(pixels)[1], np.shape(pixels)[0])))), T)
-
-    # Estimate parameters in decorrelated coordinates
-    mixture, opt_mixture = gaussian_mixture(pixels, init_K, final_K, verbose, est_kind, condition_number)
-
-    # Transform the parameters back to original coordinates
-    if final_K > 0:
-        for k in range(mixture[0].K):
-            mixture[0].cluster[k].mu = np.transpose(np.matmul(np.transpose(mixture[0].cluster[k].mu), invT) + smean)
-            mixture[0].cluster[k].R = np.matmul(np.transpose(invT), np.matmul(mixture[0].cluster[k].R, invT))
-            mixture[0].cluster[k].invR = np.matmul(T, np.matmul(mixture[0].cluster[k].invR, np.transpose(T)))
-            mixture[0].cluster[k].const = mixture[0].cluster[k].const - np.log(
-                np.linalg.det(np.matmul(np.transpose(invT), invT))) / 2
-        opt_mixture = mixture[0]
-    else:
-        for j in range(init_K):
-            for k in range(j):
-                mixture[j].cluster[k].mu = np.transpose(np.matmul(np.transpose(mixture[j].cluster[k].mu), invT) + smean)
-                mixture[j].cluster[k].R = np.matmul(np.transpose(invT), np.matmul(mixture[j].cluster[k].R, invT))
-                mixture[j].cluster[k].invR = np.matmul(T, np.matmul(mixture[j].cluster[k].invR, np.transpose(T)))
-                mixture[j].cluster[k].const = mixture[j].cluster[k].const - np.log(
-                    np.linalg.det(np.matmul(np.transpose(invT), invT))) / 2
-        for k in range(opt_mixture.K):
-            opt_mixture.cluster[k].mu = np.transpose(np.matmul(np.transpose(opt_mixture.cluster[k].mu), invT) + smean)
-            opt_mixture.cluster[k].R = np.matmul(np.transpose(invT), np.matmul(opt_mixture.cluster[k].R, invT))
-            opt_mixture.cluster[k].invR = np.matmul(T, np.matmul(opt_mixture.cluster[k].invR, np.transpose(T)))
-            opt_mixture.cluster[k].const = opt_mixture.cluster[k].const - np.log(
-                np.linalg.det(np.matmul(np.transpose(invT), invT))) / 2
-
-    return mixture, opt_mixture
-
-
-
-
+    return opt_mixture
