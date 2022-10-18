@@ -12,7 +12,7 @@ the 2 mixture models using "PyGMCluster" library.
 train_data_0, train_data_1, test_data = pygmcluster.gen_demo_dataset_2()
 
 # Estimate optimal order and clustering data for class 0
-class_0 = pygmcluster.gaussian_mixture(train_data_0)
+class_0 = pygmcluster.estimate_gaussian_mixture(train_data_0)
 
 print('\noptimal order: ', class_0.K)
 for i in range(class_0.K):
@@ -24,7 +24,7 @@ for i in range(class_0.K):
 
 
 # Estimate optimal order and clustering data for class 1
-class_1 = pygmcluster.gaussian_mixture(train_data_1)
+class_1 = pygmcluster.estimate_gaussian_mixture(train_data_1)
 
 print('\noptimal order: ', class_1.K)
 for i in range(class_1.K):
@@ -36,8 +36,8 @@ for i in range(class_1.K):
 
 # Perform classification
 likelihood = np.zeros((np.shape(test_data)[0], 2))
-likelihood[:, 0] = pygmcluster.GM_class_likelihood(class_0, test_data)[:, 0]
-likelihood[:, 1] = pygmcluster.GM_class_likelihood(class_1, test_data)[:, 0]
+likelihood[:, 0] = pygmcluster.compute_GM_class_likelihood(class_0, test_data)[:, 0]
+likelihood[:, 1] = pygmcluster.compute_GM_class_likelihood(class_1, test_data)[:, 0]
 class_list = np.argmax(likelihood, axis=1)
 for n in range(np.shape(test_data)[0]):
     print(test_data[n, :], ' Log-likelihood: ', likelihood[n, :], ' class: ', class_list[n])
