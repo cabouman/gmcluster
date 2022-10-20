@@ -16,7 +16,6 @@ class MixtureObj:
         self.cluster = None
         self.rissanen = None
         self.loglikelihood = None
-        self.Rmin = None
         self.pnk = None
 
 
@@ -70,7 +69,7 @@ def init_mixture(data, K, est_kind, condition_number):
             - est_kind = 'diag' constrains the class covariance matrices to be diagonal
             - est_kind = 'full' allows the class covariance matrices to be full matrices
         condition_number: a constant that controls the ratio of the mean to the minimum of the diagonal elements of the
-            initial covariance matrices. The default value is 1e5
+            covariance matrices. The default value is 1e5
 
     Returns:
         class object: a structure containing the initial parameter values for the Gaussian mixture of a given order
@@ -88,7 +87,6 @@ def init_mixture(data, K, est_kind, condition_number):
 
     # Ensure that the condition number of R is >= condition_number
     alpha = 1.0 / condition_number
-    mixture.Rmin = alpha * np.mean(np.diag(R))
     R = (1.0 - alpha) * R + alpha * np.eye(mixture.M)
 
     # Allocate and array of K clusters
@@ -110,7 +108,7 @@ def init_mixture(data, K, est_kind, condition_number):
             cluster_obj.N = 0
             cluster_obj.pb = 1/K
             cluster_obj.mu = np.expand_dims(data[int((k - 1) * period + 1), :], 1)
-            cluster_obj.R = R + mixture.Rmin * np.eye(mixture.M)
+            cluster_obj.R = R
             cluster[k] = cluster_obj
 
     mixture.cluster = cluster
@@ -155,7 +153,7 @@ def E_step(mixture, data):
     return mixture, likelihood
 
 
-def M_step(mixture, data, est_kind):
+def M_step(mixture, data, est_kind, condition_number):
     """Function to perform the M-step of the EM algorithm. From the pnk calculated in the E-step, it updates parameters
     of each cluster.
 
@@ -165,6 +163,8 @@ def M_step(mixture, data, est_kind):
         est_kind: 
             - est_kind = 'diag' constrains the class covariance matrices to be diagonal
             - est_kind = 'full' allows the class covariance matrices to be full matrices
+        condition_number(float,optional): a constant >= 1.0 that controls the ratio of the mean to the minimum of the diagonal elements of the
+            covariance matrices. The default value is 1e5
 
     Returns:
         class object: a structure containing the Gaussian mixture  of same order with updated cluster parameters
@@ -183,7 +183,9 @@ def M_step(mixture, data, est_kind):
                 if r != s:
                     R[s, r] = R[r, s]
 
-        R = R + mixture.Rmin * np.eye(mixture.M)
+        # Ensure that the condition number of R is >= condition_number
+        alpha = 1.0 / condition_number
+        R = (1.0 - alpha) * R + alpha * np.eye(mixture.M)
         if est_kind == 'diag':
             R = np.diag(np.diag(R))
         cluster_obj.R = R
@@ -194,7 +196,7 @@ def M_step(mixture, data, est_kind):
     return mixture
 
 
-def EM_iterate(mixture, data, est_kind):
+def EM_iterate(mixture, data, est_kind, condition_number):
     """Function to perform the EM algorithm with a preassigned fixed order K.
 
     Args:
@@ -203,6 +205,8 @@ def EM_iterate(mixture, data, est_kind):
         est_kind: 
             - est_kind = 'diag' constrains the class covariance matrices to be diagonal
             - est_kind = 'full' allows the class covariance matrices to be full matrices
+        condition_number(float,optional): a constant >= 1.0 that controls the ratio of the mean to the minimum of the diagonal elements of the
+            covariance matrices. The default value is 1e5
 
     Returns:
         class object: a structure containing the converged Gaussian mixture with updated parameters
@@ -219,7 +223,7 @@ def EM_iterate(mixture, data, est_kind):
 
     while True:
         ll_old = ll_new
-        mixture = M_step(mixture, data, est_kind)
+        mixture = M_step(mixture, data, est_kind, condition_number)
         [mixture, ll_new] = E_step(mixture, data)
         if (ll_new - ll_old) <= epsilon:
             break
@@ -349,7 +353,6 @@ def split_classes(mixture):
         classes[k] = copy.deepcopy(mixture)
         classes[k].K = 1
         classes[k].cluster = [mixture.cluster[k]]
-        classes[k].Rmin = None
         classes[k].rissanen = None
         classes[k].loglikelihood = None
 
@@ -417,7 +420,7 @@ def estimate_gaussian_mixture(data, init_K=20, final_K=0, verbose=True, est_kind
             - est_kind = 'full' allows the class covariance matrices to be full matrices
         decorrelate_coordinates(bool,optional): true/false, decorrelate coordinates to better condition the problem if true
         condition_number(float,optional): a constant >= 1.0 that controls the ratio of the mean to the minimum of the diagonal elements of the
-            initial covariance matrices. The default value is 1e5
+            covariance matrices. The default value is 1e5
 
     Returns:
     	class object: a structure with optimum Gaussian mixture parameters, where
@@ -426,7 +429,6 @@ def estimate_gaussian_mixture(data, init_K=20, final_K=0, verbose=True, est_kind
             - opt_mixture.cluster: an array of cluster structures with each containing the converged cluster parameters
             - opt_mixture.rissanen: converged MDL(K)
             - opt_mixture.loglikelihood: ln( Prob{Y=y|K, theta*} )
-            - opt_mixture.Rmin: intermediate parameter dependent on condition number
             - opt_mixture.pnk: Prob(Xn=k|Yn=yn, theta)
         """
     if (isinstance(init_K, int) is False) or init_K <= 0:
@@ -466,7 +468,7 @@ def estimate_gaussian_mixture(data, init_K=20, final_K=0, verbose=True, est_kind
         print('No. of clusters initialized to: ', str(init_K))
 
     mtr = init_mixture(data, init_K, est_kind, condition_number)
-    mtr = EM_iterate(mtr, data, est_kind)
+    mtr = EM_iterate(mtr, data, est_kind, condition_number)
 
     if verbose:
         print('K: ', mtr.K, 'rissanen: ', mtr.rissanen)
@@ -475,7 +477,7 @@ def estimate_gaussian_mixture(data, init_K=20, final_K=0, verbose=True, est_kind
     mixture[mtr.K - max(1, final_K)] = copy.deepcopy(mtr)
     while mtr.K > max(1, final_K):
         mtr = MDL_reduce_order(mtr, verbose)
-        mtr = EM_iterate(mtr, data, est_kind)
+        mtr = EM_iterate(mtr, data, est_kind, condition_number)
         if verbose:
             print('K: ', mtr.K, 'rissanen: ', mtr.rissanen)
         mixture[mtr.K - max(1, final_K)] = copy.deepcopy(mtr)
