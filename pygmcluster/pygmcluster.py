@@ -87,7 +87,8 @@ def init_mixture(data, K, est_kind, condition_number):
 
     # Ensure that the condition number of R is >= condition_number
     alpha = 1.0 / condition_number
-    R = (1.0 - alpha) * R + alpha * np.eye(mixture.M)
+    D = np.sum(np.diag(R))*np.eye(mixture.M)/mixture.M
+    R = (1.0 - alpha) * R + alpha * D
 
     # Allocate and array of K clusters
     cluster = [None]*K
@@ -185,7 +186,8 @@ def M_step(mixture, data, est_kind, condition_number):
 
         # Ensure that the condition number of R is >= condition_number
         alpha = 1.0 / condition_number
-        R = (1.0 - alpha) * R + alpha * np.eye(mixture.M)
+        D = np.sum(np.diag(R)) * np.eye(mixture.M) / mixture.M
+        R = (1.0 - alpha) * R + alpha * D
         if est_kind == 'diag':
             R = np.diag(np.diag(R))
         cluster_obj.R = R
