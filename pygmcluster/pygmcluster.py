@@ -59,7 +59,7 @@ def cluster_normalize(mixture):
     return mixture
 
 
-def init_mixture(data, K, est_kind, condition_number):
+def init_mixture(data, K, est_kind, alpha):
     """Function to initialize the structure containing the Gaussian mixture.
 
     Args:
@@ -68,7 +68,7 @@ def init_mixture(data, K, est_kind, condition_number):
         est_kind: 
             - est_kind = 'diag' constrains the class covariance matrices to be diagonal
             - est_kind = 'full' allows the class covariance matrices to be full matrices
-        condition_number: a constant that controls the ratio of the mean to the minimum of the diagonal elements of the
+        alpha: a constant that controls the ratio of the mean to the minimum of the diagonal elements of the
             covariance matrices. The default value is 1e5
 
     Returns:
@@ -85,8 +85,7 @@ def init_mixture(data, K, est_kind, condition_number):
     if est_kind == 'diag':
         R = np.diag(np.diag(R))
 
-    # Ensure that the condition number of R is >= condition_number
-    alpha = 1.0 / condition_number
+    # Ensure that the alpha of R is <= alpha
     D = np.sum(np.diag(R))*np.eye(mixture.M)/mixture.M
     R = (1.0 - alpha) * R + alpha * D
 
@@ -154,7 +153,7 @@ def E_step(mixture, data):
     return mixture, likelihood
 
 
-def M_step(mixture, data, est_kind, condition_number):
+def M_step(mixture, data, est_kind, alpha):
     """Function to perform the M-step of the EM algorithm. From the pnk calculated in the E-step, it updates parameters
     of each cluster.
 
@@ -164,8 +163,9 @@ def M_step(mixture, data, est_kind, condition_number):
         est_kind: 
             - est_kind = 'diag' constrains the class covariance matrices to be diagonal
             - est_kind = 'full' allows the class covariance matrices to be full matrices
-        condition_number(float,optional): a constant >= 1.0 that controls the ratio of the mean to the minimum of the diagonal elements of the
-            covariance matrices. The default value is 1e5
+        alpha(float,optional): a constant (0 < alpha <= 1) that controls the shape of the cluster by regularizing the
+            covariance matrices. alpha = 1 gives the cluster a spherical shape and alpha = 0 gives the cluster an elliptical
+            shape. The default value is 0.5
 
     Returns:
         class object: a structure containing the Gaussian mixture  of same order with updated cluster parameters
@@ -184,8 +184,7 @@ def M_step(mixture, data, est_kind, condition_number):
                 if r != s:
                     R[s, r] = R[r, s]
 
-        # Ensure that the condition number of R is >= condition_number
-        alpha = 1.0 / condition_number
+        # Ensure that the alpha of R is <= alpha
         D = np.sum(np.diag(R)) * np.eye(mixture.M) / mixture.M
         R = (1.0 - alpha) * R + alpha * D
         if est_kind == 'diag':
@@ -198,7 +197,7 @@ def M_step(mixture, data, est_kind, condition_number):
     return mixture
 
 
-def EM_iterate(mixture, data, est_kind, condition_number):
+def EM_iterate(mixture, data, est_kind, alpha):
     """Function to perform the EM algorithm with a preassigned fixed order K.
 
     Args:
@@ -207,8 +206,9 @@ def EM_iterate(mixture, data, est_kind, condition_number):
         est_kind: 
             - est_kind = 'diag' constrains the class covariance matrices to be diagonal
             - est_kind = 'full' allows the class covariance matrices to be full matrices
-        condition_number(float,optional): a constant >= 1.0 that controls the ratio of the mean to the minimum of the diagonal elements of the
-            covariance matrices. The default value is 1e5
+        alpha(float,optional): a constant (0 < alpha <= 1) that controls the shape of the cluster by regularizing the
+            covariance matrices. alpha = 1 gives the cluster a spherical shape and alpha = 0 gives the cluster an elliptical
+            shape. The default value is 0.5
 
     Returns:
         class object: a structure containing the converged Gaussian mixture with updated parameters
@@ -225,7 +225,7 @@ def EM_iterate(mixture, data, est_kind, condition_number):
 
     while True:
         ll_old = ll_new
-        mixture = M_step(mixture, data, est_kind, condition_number)
+        mixture = M_step(mixture, data, est_kind, alpha)
         [mixture, ll_new] = E_step(mixture, data)
         if (ll_new - ll_old) <= epsilon:
             break
@@ -286,7 +286,7 @@ def MDL_reduce_order(mixture, verbose):
         verbose: true/false, return clustering information if true
 
     Returns:
-        claass object: a structure containing the converged Gaussian mixture at an order reduced by one
+        class object: a structure containing the converged Gaussian mixture at an order reduced by one
         """
     K = mixture.K
     
@@ -408,7 +408,7 @@ def transform_back_to_original_coordinates(opt_mixture, T, smean):
     return opt_mixture
 
 
-def estimate_gaussian_mixture(data, init_K=20, final_K=0, verbose=True, est_kind='full', decorrelate_coordinates=False, condition_number=1e4):
+def estimate_gaussian_mixture(data, init_K=20, final_K=0, verbose=True, est_kind='full', decorrelate_coordinates=False, alpha=0.5):
     """Function to perform the EM algorithm to estimate the order, and parameters of a Gaussian Mixture model for a
     given set of observations.
 
@@ -421,8 +421,9 @@ def estimate_gaussian_mixture(data, init_K=20, final_K=0, verbose=True, est_kind
             - est_kind = 'diag' constrains the class covariance matrices to be diagonal
             - est_kind = 'full' allows the class covariance matrices to be full matrices
         decorrelate_coordinates(bool,optional): true/false, decorrelate coordinates to better condition the problem if true
-        condition_number(float,optional): a constant >= 1.0 that controls the ratio of the mean to the minimum of the diagonal elements of the
-            covariance matrices. The default value is 1e5
+        alpha(float,optional): a constant (0 < alpha <= 1) that controls the shape of the cluster by regularizing the
+            covariance matrices. alpha = 1 gives the cluster a spherical shape and alpha = 0 gives the cluster an elliptical
+            shape. The default value is 0.5
 
     Returns:
     	class object: a structure with optimum Gaussian mixture parameters, where
@@ -447,6 +448,9 @@ def estimate_gaussian_mixture(data, init_K=20, final_K=0, verbose=True, est_kind
     if (est_kind != 'full') and (est_kind != 'diag'):
         print('GaussianMixture: estimator kind can only be diag or full')
         return
+    if (alpha <= 0) or (alpha > 1):
+        print('GaussianMixture: alpha must be greater than 0 and less than or equal to 1')
+        return
 
     if decorrelate_coordinates:
         data, T, smean = decorrelate_and_normalize(data)
@@ -469,8 +473,8 @@ def estimate_gaussian_mixture(data, init_K=20, final_K=0, verbose=True, est_kind
         init_K = int(max_params / 2)
         print('No. of clusters initialized to: ', str(init_K))
 
-    mtr = init_mixture(data, init_K, est_kind, condition_number)
-    mtr = EM_iterate(mtr, data, est_kind, condition_number)
+    mtr = init_mixture(data, init_K, est_kind, alpha)
+    mtr = EM_iterate(mtr, data, est_kind, alpha)
 
     if verbose:
         print('K: ', mtr.K, 'rissanen: ', mtr.rissanen)
@@ -479,7 +483,7 @@ def estimate_gaussian_mixture(data, init_K=20, final_K=0, verbose=True, est_kind
     mixture[mtr.K - max(1, final_K)] = copy.deepcopy(mtr)
     while mtr.K > max(1, final_K):
         mtr = MDL_reduce_order(mtr, verbose)
-        mtr = EM_iterate(mtr, data, est_kind, condition_number)
+        mtr = EM_iterate(mtr, data, est_kind, alpha)
         if verbose:
             print('K: ', mtr.K, 'rissanen: ', mtr.rissanen)
         mixture[mtr.K - max(1, final_K)] = copy.deepcopy(mtr)
