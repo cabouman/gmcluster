@@ -1,6 +1,6 @@
-pygmcluster.sim
+gmcluster.sim
 ---------------
-.. automodule:: pygmcluster.sim
+.. automodule:: gmcluster.sim
    :members: gen_demo_dataset_1, gen_demo_dataset_2
    :member-order: bysource
    :undoc-members:

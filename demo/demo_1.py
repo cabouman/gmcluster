@@ -1,15 +1,15 @@
-import pygmcluster
+import gmcluster
 
 """
 This file demonstrates a demo of the EM algorithm to estimate the order and parameters of a Gaussian Mixture model 
-using "PyGMCluster" library.
+using "gmcluster" library.
 """
 
 # Generate demo data
-pixels = pygmcluster.gen_demo_dataset_1()
+pixels = gmcluster.gen_demo_dataset_1()
 
 # Estimate optimal order and clustering data
-omtr = pygmcluster.estimate_gaussian_mixture(pixels)
+omtr = gmcluster.estimate_gm_params(pixels)
 
 print('\noptimal order: ', omtr.K)
 for i in range(omtr.K):
@@ -23,7 +23,7 @@ for i in range(omtr.K):
 # Estimate clustering data assuming optimal order of 5
 optimal_order = 5
 
-omtr = pygmcluster.estimate_gaussian_mixture(pixels, final_K=optimal_order)
+omtr = gmcluster.estimate_gm_params(pixels, final_K=optimal_order)
 
 for i in range(omtr.K):
     cluster_obj = omtr.cluster[i]

@@ -3,9 +3,9 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-.. image:: pygmcluster_logo.png
+.. image:: gmcluster_logo.png
    :width: 320px
-   :alt: pygmcluster logo
+   :alt: gmcluster logo
    :align: center
 
 |
