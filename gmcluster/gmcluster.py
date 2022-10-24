@@ -216,6 +216,31 @@ def cluster_normalize(mixture):
     return mixture
 
 
+def ridge_regression(R, est_kind, alpha):
+    """Function to regularize and constrain class covariance matrix.
+
+    Args:
+        R(ndarray): the initial class covariance matrix
+        est_kind(string):
+            - est_kind = 'diag' constrains the class covariance matrices to be diagonal
+            - est_kind = 'full' allows the class covariance matrices to be full matrices
+        alpha(float): a constant (0 < alpha <= 1) that controls the shape of the cluster by regularizing the covariance
+            matrices. alpha = 1 gives the cluster a spherical shape and alpha = 0 gives the cluster an elliptical shape.
+            The default value is 0.1
+
+    Returns:
+        ndarray: the regularized and constrained class covariance matrix
+        """
+    if est_kind == 'diag':
+        R = np.diag(np.diag(R))
+
+    # Ensure that the alpha of R is <= alpha
+    D = np.sum(np.diag(R))*np.eye(R.shape[0])/R.shape[0]
+    R = (1.0 - alpha) * R + alpha * D
+
+    return R
+
+
 def init_mixture(data, K, est_kind, alpha):
     """Function to initialize the structure containing the Gaussian mixture.
 
@@ -226,8 +251,9 @@ def init_mixture(data, K, est_kind, alpha):
         est_kind(string):
             - est_kind = 'diag' constrains the class covariance matrices to be diagonal
             - est_kind = 'full' allows the class covariance matrices to be full matrices
-        alpha(float): a constant that controls the ratio of the mean to the minimum of the diagonal elements of the
-            covariance matrices. The default value is 1e5
+        alpha(float): a constant (0 < alpha <= 1) that controls the shape of the cluster by regularizing the covariance
+            matrices. alpha = 1 gives the cluster a spherical shape and alpha = 0 gives the cluster an elliptical shape.
+            The default value is 0.1
 
     Returns:
         class object: a structure containing the initial parameter values for the Gaussian mixture of a given order
@@ -238,14 +264,11 @@ def init_mixture(data, K, est_kind, alpha):
     mixture.K = K
     mixture.M = M
 
-    # Compute sample convariance for entire data set
+    # Compute sample covariance for entire data set
     R = (N - 1) * np.cov(data, rowvar=False) / N
-    if est_kind == 'diag':
-        R = np.diag(np.diag(R))
 
-    # Ensure that the alpha of R is <= alpha
-    D = np.sum(np.diag(R))*np.eye(mixture.M)/mixture.M
-    R = (1.0 - alpha) * R + alpha * D
+    # Regularize the covariance matrix and impose constrains
+    R = ridge_regression(R, est_kind, alpha)
 
     # Allocate and array of K clusters
     cluster = [None]*K
@@ -344,11 +367,9 @@ def M_step(mixture, data, est_kind, alpha):
                 if r != s:
                     R[s, r] = R[r, s]
 
-        # Ensure that the alpha of R is <= alpha
-        D = np.sum(np.diag(R)) * np.eye(mixture.M) / mixture.M
-        R = (1.0 - alpha) * R + alpha * D
-        if est_kind == 'diag':
-            R = np.diag(np.diag(R))
+        # Regularize the covariance matrix and impose constrains
+        R = ridge_regression(R, est_kind, alpha)
+
         cluster_obj.R = R
         mixture.cluster[k] = cluster_obj
 
