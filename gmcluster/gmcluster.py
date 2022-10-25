@@ -188,6 +188,47 @@ def compute_class_likelihood(mixture, data):
     return ll
 
 
+def generate_gm_samples(mixture, N=500):
+    """Function to generate Gaussian Mixture model with K clusters for a given set of parameters and number of
+    observations.
+
+    Args:
+        mixture(class): a structure representing the parameters for a Gaussian mixture of a given order
+        N(int): number of observation
+
+    Returns:
+        ndarray: an N x M 2D array of observation vectors with each row being an M-dimensional observation vector,
+        totally N observations
+        """
+    gm_samples = np.zeros((mixture.M, N))
+    switch_var = np.matmul(np.ones((mixture.M, 1)), np.random.rand(1, N))
+    pb_low = 0
+
+    for k in range(mixture.K):
+        cluster_obj = mixture.cluster[k]
+        pb = cluster_obj.pb
+        mu = cluster_obj.mu
+        R = cluster_obj.R
+
+        # Eigen decomposition
+        [D, V] = np.linalg.eig(R)
+        A = np.matmul(V, np.diagflat(np.sqrt(D)))
+
+        # Generate data with the given distributions
+        x = np.matmul(A, np.random.randn(mixture.M, N)) + np.matmul(mu, np.ones((1, N)))
+
+        # Limit number of samples from the distribution using the given probability value
+        switch_var_k = np.zeros(np.shape(switch_var))
+        pb_high = pb_low + pb
+        switch_var_k[(switch_var >= pb_low) & (switch_var < pb_high)] = 1
+        pb_low = pb_high
+
+        # Combine data from all distributions
+        gm_samples = gm_samples + switch_var_k * x
+
+    return np.transpose(gm_samples)
+
+
 def cluster_normalize(mixture):
     """Function to normalize cluster.
 
