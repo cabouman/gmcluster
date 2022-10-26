@@ -17,6 +17,7 @@ class MixtureObj:
         self.rissanen = None
         self.loglikelihood = None
         self.pnk = None
+        self.R_reg = None
 
 
 class ClusterObj:
@@ -60,6 +61,7 @@ def estimate_gm_params(data, init_K=20, final_K=0, verbose=True, est_kind='full'
             - opt_mixture.rissanen: converged MDL(K)
             - opt_mixture.loglikelihood: ln( Prob{Y=y|K, theta*} )
             - opt_mixture.pnk: Prob(Xn=k|Yn=yn, theta)
+            - opt_mixture.R_reg: regularization term for the covariance matrix
         """
     if (isinstance(init_K, int) is False) or init_K <= 0:
         print('GaussianMixture: initial number of clusters init_K must be a positive integer')
@@ -257,7 +259,7 @@ def cluster_normalize(mixture):
     return mixture
 
 
-def ridge_regression(R, est_kind, alpha):
+def ridge_regression(R, est_kind, alpha, R_reg=None):
     """Function to regularize and constrain class covariance matrix.
 
     Args:
@@ -268,6 +270,8 @@ def ridge_regression(R, est_kind, alpha):
         alpha(float): a constant (0 < alpha <= 1) that controls the shape of the cluster by regularizing the covariance
             matrices. alpha = 1 gives the cluster a spherical shape and alpha = 0 gives the cluster an elliptical shape.
             The default value is 0.1
+        R_reg(ndarray,optional): a 2D array used as the regularization term in the covariance matrix update equation.
+            The function will compute it from the given R if set to default
 
     Returns:
         ndarray: the regularized and constrained class covariance matrix
@@ -275,11 +279,19 @@ def ridge_regression(R, est_kind, alpha):
     if est_kind == 'diag':
         R = np.diag(np.diag(R))
 
-    # Ensure that the alpha of R is <= alpha
-    D = np.sum(np.diag(R))*np.eye(R.shape[0])/R.shape[0]
-    R = (1.0 - alpha) * R + alpha * D
+    if R_reg is None:
+        return_R_reg = True
+        R_reg = np.mean(np.diag(R))*np.eye(R.shape[0])
+    else:
+        return_R_reg = False
 
-    return R
+    # Ensure that the alpha of R is <= alpha
+    R = (1.0 - (alpha**2)) * R + (alpha**2) * R_reg
+
+    if return_R_reg:
+        return R, R_reg
+    else:
+        return R
 
 
 def init_mixture(data, K, est_kind, alpha):
@@ -309,7 +321,7 @@ def init_mixture(data, K, est_kind, alpha):
     R = (N - 1) * np.cov(data, rowvar=False) / N
 
     # Regularize the covariance matrix and impose constrains
-    R = ridge_regression(R, est_kind, alpha)
+    R, R_reg = ridge_regression(R, est_kind, alpha)
 
     # Allocate and array of K clusters
     cluster = [None]*K
@@ -334,6 +346,7 @@ def init_mixture(data, K, est_kind, alpha):
             cluster[k] = cluster_obj
 
     mixture.cluster = cluster
+    mixture.R_reg = R_reg
     mixture = cluster_normalize(mixture)
 
     return mixture
@@ -409,7 +422,7 @@ def M_step(mixture, data, est_kind, alpha):
                     R[s, r] = R[r, s]
 
         # Regularize the covariance matrix and impose constrains
-        R = ridge_regression(R, est_kind, alpha)
+        R = ridge_regression(R, est_kind, alpha, mixture.R_reg)
 
         cluster_obj.R = R
         mixture.cluster[k] = cluster_obj
