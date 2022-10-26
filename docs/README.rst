@@ -1,6 +1,6 @@
-PyGMCluster
+gmcluster
 -----------
-**PyGMCluster** is an easy to use python-based library for EM clustering.
+**gmcluster** is an easy to use python-based library for EM clustering.
 
 The original C package is available here:
 https://engineering.purdue.edu/~bouman/software/cluster/
@@ -19,6 +19,6 @@ We also recommend:
 
 License
 -------
-The project is licensed under the `BSD 3-Clause <https://github.com/cabouman/pygmcluster/blob/main/LICENSE>`_ License.
+The project is licensed under the `BSD 3-Clause <https://github.com/cabouman/gmcluster/blob/main/LICENSE>`_ License.
 
 

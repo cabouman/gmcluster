@@ -29,9 +29,9 @@ def setup(app):
 
 # -- Project information -----------------------------------------------------
 
-project = 'PyGMCluster'
+project = 'gmcluster'
 copyright = '2022, Charles Bouman'
-author = 'PyGMCluster Development Team'
+author = 'gmcluster Development Team'
 
 # The full version, including alpha/beta/rc tags
 release = '0.0.1'
@@ -106,7 +106,7 @@ html_theme_options = {
     'collapse_navigation': False,
 }
 
-html_logo = 'pygmcluster_logo.png'
+html_logo = 'gmcluster_logo.png'
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = project + 'doc'

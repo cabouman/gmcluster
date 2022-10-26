@@ -1,5 +1,5 @@
 #!/bin/bash
-# This script just installs PyGMCluster along with requirements of PyGMCluster.
+# This script just installs gmcluster along with requirements of gmcluster.
 
 cd ..
 pip install -r requirements.txt
