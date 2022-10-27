@@ -31,14 +31,14 @@ class ClusterObj:
 # Data parameters
 N = 500  # number of observations/sample
 pb = [0.4, 0.4, 0.2]  # cluster probabilities
-R1 = [[1, 0.1], [0.1, 1]]
-R2 = [[1, -0.1], [-0.1, 1]]
-R3 = [[1, 0.2], [0.2, 0.5]]
-R = [R1, R2, R3]  # cluster covariance matrices
-mu1 = [[2], [2]]
-mu2 = [[-2], [-2]]
-mu3 = [[5.5], [2]]
-mu = [mu1, mu2, mu3]  # cluster means
+R_0 = [[1, 0.1], [0.1, 1]]
+R_1 = [[1, -0.1], [-0.1, 1]]
+R_2 = [[1, 0.2], [0.2, 0.5]]
+R = [R_0, R_1, R_2]  # cluster covariance matrices
+mu_0 = [[2], [2]]
+mu_1 = [[-2], [-2]]
+mu_2 = [[5.5], [2]]
+mu = [mu_0, mu_1, mu_2]  # cluster means
 
 # Create the mixture with GM parameters
 cluster = [None]*3
