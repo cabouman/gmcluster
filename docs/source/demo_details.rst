@@ -2,20 +2,18 @@
 Demo Details 
 ============
 
-We have total 4 demo scripts showing different uses of the software package.
+We have 2 demo scripts showing different uses of the software package.
 
 
 Demo 1
 ------
 
-The demo shows an implementation of EM algorithm-based cluster parameter and order estimation for Gaussian mixture model.
+The demo shows an implementation of EM algorithm-based cluster parameter and order estimation for Gaussian mixture model followed by unsupervised classification of datapoints from different clusters.
 
 **Steps**
 	• First, generate 500 observations from a Gaussian mixture model with 3 clusters.
 	• Then implement “estimate_gm_params” function on the data for the estimation.
-	• The final order of clusters was set to:
-		1. 0 for automatically detect the optimal order.
-		2. 5 for fixing 5 to be the optimal order.
+	• Then use “split_classes” followed by “compute_class_likelihood” functions to classify observations from different clusters.
 
 **Results**
 
@@ -28,10 +26,10 @@ The demo shows an implementation of EM algorithm-based cluster parameter and ord
    
 .. figure:: demo_1_2.png
    :width: 100%
-   :alt: estimated parameters
+   :alt: unsupervised clustering results
    :align: center
    
-   Estimated parameters
+   Unsupervised classification results
    
    
 Demo 2
@@ -60,41 +58,4 @@ The demo shows an implementation of the EM algorithm to estimate the orders and 
    
    Classification results
 
-Demo 3
-------
-
-The demo shows an implementation of EM algorithm-based cluster parameter and order estimation for Gaussian mixture model followed by unsupervised classification of datapoints from different clusters.
-
-**Steps**
-	• First, generate 500 observations from a Gaussian mixture model with 3 clusters.
-	• Then implement “estimate_gm_params” function on the data for the estimation.
-	• Then use “split_classes” followed by “compute_class_likelihood” functions to classify observations from different clusters.
-
-**Results**
-
-.. figure:: demo_3_1.png
-   :width: 100%
-   :alt: unsupervised clustering results
-   :align: center
-   
-   Unsupervised clustering results
-
-Demo 4
-------
-
-The demo shows an implementation of EM algorithm-based cluster parameter and order estimation for Gaussian mixture model using decorrelated coordinates followed by unsupervised classification of datapoints from different clusters.
-
-**Steps**
-	• First, generate 500 observations from a Gaussian mixture model with 3 clusters.
-	• Then implement “estimate_gm_params” function on the data and set the decorrelate_coordinates parameter to 'True'.
-	• Then use “split_classes” followed by “compute_class_likelihood” functions to classify observations from different clusters.
-    
-**Results**
-
-.. figure:: demo_4_1.png
-   :width: 100%
-   :alt: unsupervised clustering results with decorrelated coordinates
-   :align: center
-   
-   Unsupervised clustering results with decorrelated coordinates
 
