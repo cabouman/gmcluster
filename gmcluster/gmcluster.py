@@ -17,7 +17,7 @@ class MixtureObj:
         self.rissanen = None
         self.loglikelihood = None
         self.pnk = None
-        self.Diag = None
+        self.D_reg = None
 
 
 class ClusterObj:
@@ -61,7 +61,7 @@ def estimate_gm_params(data, init_K=20, final_K=0, verbose=True, est_kind='full'
             - opt_mixture.rissanen: converged MDL(K)
             - opt_mixture.loglikelihood: ln( Prob{Y=y|K, theta*} )
             - opt_mixture.pnk: Prob(Xn=k|Yn=yn, theta)
-            - opt_mixture.Diag: a diagonal matrix used for regularizing class covariance matrices
+            - opt_mixture.D_reg: a diagonal matrix used for regularizing class covariance matrices
         """
     if (isinstance(init_K, int) is False) or init_K <= 0:
         print('estimate_gm_params: initial number of clusters init_K must be a positive integer')
@@ -259,7 +259,7 @@ def cluster_normalize(mixture):
     return mixture
 
 
-def ridge_regression(R, est_kind, alpha, Diag=None):
+def ridge_regression(R, est_kind, alpha, D_reg=None):
     """Function to regularize and constrain class covariance matrix.
 
     Args:
@@ -270,7 +270,7 @@ def ridge_regression(R, est_kind, alpha, Diag=None):
         alpha(float): a constant (0 < alpha <= 1) that controls the shape of the cluster by regularizing the covariance
             matrices. alpha = 1 gives the cluster a spherical shape and alpha = 0 gives the cluster an elliptical shape.
             The default value is 0.1
-        Diag(ndarray,optional): a diagonal matrix used as the regularization term in the class covariance matrix update
+        D_reg(ndarray,optional): a diagonal matrix used as the regularization term in the class covariance matrix update
             equation. The function will compute it from the given R if set to default
 
     Returns:
@@ -279,17 +279,17 @@ def ridge_regression(R, est_kind, alpha, Diag=None):
     if est_kind == 'diag':
         R = np.diag(np.diag(R))
 
-    if Diag is None:
-        return_Diag = True
-        Diag = np.mean(np.diag(R))*np.eye(R.shape[0])
+    if D_reg is None:
+        return_D_reg = True
+        D_reg = np.mean(np.diag(R))*np.eye(R.shape[0])
     else:
-        return_Diag = False
+        return_D_reg = False
 
     # Ensure that the alpha of R is <= alpha
-    R = (1.0 - (alpha**2)) * R + (alpha**2) * Diag
+    R = (1.0 - (alpha**2)) * R + (alpha**2) * D_reg
 
-    if return_Diag:
-        return R, Diag
+    if return_D_reg:
+        return R, D_reg
     else:
         return R
 
@@ -321,7 +321,7 @@ def init_mixture(data, K, est_kind, alpha):
     R = (N - 1) * np.cov(data, rowvar=False) / N
 
     # Regularize the covariance matrix and impose constrains
-    R, Diag = ridge_regression(R, est_kind, alpha)
+    R, D_reg = ridge_regression(R, est_kind, alpha)
 
     # Allocate and array of K clusters
     cluster = [None]*K
@@ -346,7 +346,7 @@ def init_mixture(data, K, est_kind, alpha):
             cluster[k] = cluster_obj
 
     mixture.cluster = cluster
-    mixture.Diag = Diag
+    mixture.D_reg = D_reg
     mixture = cluster_normalize(mixture)
 
     return mixture
@@ -422,7 +422,7 @@ def M_step(mixture, data, est_kind, alpha):
                     R[s, r] = R[r, s]
 
         # Regularize the covariance matrix and impose constrains
-        R = ridge_regression(R, est_kind, alpha, mixture.Diag)
+        R = ridge_regression(R, est_kind, alpha, mixture.D_reg)
 
         cluster_obj.R = R
         mixture.cluster[k] = cluster_obj
