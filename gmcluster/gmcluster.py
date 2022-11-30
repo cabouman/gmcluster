@@ -196,7 +196,7 @@ def generate_gm_samples(mixture, N=500):
 
     Args:
         mixture(class): a structure representing the parameters for a Gaussian mixture of a given order
-        N(int): number of observation
+        N(int,optional): number of observation
 
     Returns:
         ndarray: an N x M 2D array of observation vectors with each row being an M-dimensional observation vector,
@@ -239,7 +239,7 @@ def cluster_normalize(mixture):
 
     Returns:
         class object: a structure containing the Gaussian mixture parameters of the same order with normalized cluster
-            parameters
+        parameters
         """
     cluster = mixture.cluster
 
@@ -275,6 +275,9 @@ def ridge_regression(R, est_kind, alpha, D_reg=None):
 
     Returns:
         ndarray: the regularized and constrained class covariance matrix
+        tuple/ndarray: (R, D_reg) or just R (if return_D_reg is false), where
+            - R(ndarray): the regularized and constrained class covariance matrix
+            - D_reg(ndarray): diagonal matrix used as the regularization term
         """
     if est_kind == 'diag':
         R = np.diag(np.diag(R))
@@ -405,7 +408,7 @@ def M_step(mixture, data, est_kind, alpha):
 
     Returns:
         class object: a structure containing the parameters for a Gaussian mixture of the same order with updated
-            cluster parameters
+        cluster parameters
         """
     for k in range(mixture.K):
         cluster_obj = mixture.cluster[k]
