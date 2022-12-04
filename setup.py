@@ -21,7 +21,7 @@ packages_dir = 'gmcluster'
 packages = [packages_dir]
 
 # Set up install for Command line interface
-install_requires = ['numpy', 'matplotlib']  # external package dependencies
+install_requires = ['numpy==1.21.2', 'matplotlib==3.4.2']  # external package dependencies
 
 setup(name=name,
       version=version,
