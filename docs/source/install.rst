@@ -50,8 +50,16 @@ The ``gmcluster`` package currently is only available to download and install fr
 
 			``pip install .``
 
-  The installation is done. The ``gmcluster`` environment needs to be activated every time you use the package.
+		2.2.4 Install the documentation:
 
+		  Use the following command to install the documentation.
+
+			| ``cd docs``
+			| ``pip install -r requirements.txt``
+			| ``make clean html``
+			| ``cd ..``
+
+  The installation is done. The ``gmcluster`` environment needs to be activated every time you use the package.
 
 3. Validate installation:
 

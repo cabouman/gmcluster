@@ -1,6 +1,7 @@
 #!/bin/bash
-# This script destroys the conda environment named "gmcluster".
-# It then creates an "gmcluster" environment and installs gmcluster in it.
+# This script destroys the conda environment named "gmcluster" and reinstalls it.
+# It then installs gmcluster package.
+# It also installs the documentation.
 
 # Destroy conda environement named "gmcluster" and reinstall it
 source install_conda_environment.sh

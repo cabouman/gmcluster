@@ -2,7 +2,7 @@
 Demo Details 
 ============
 
-We have 2 demo scripts showing different uses of the software package.
+The repository contains demo python scripts named **demo/demo_1.py** and **demo/demo_2.py** that demonstrate two different uses of the software package. 
 
 
 Demo 1
