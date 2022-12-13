@@ -30,6 +30,7 @@ Indices and tables
 
    overview
    theory
+   credits
    
 .. toctree::
    :hidden:

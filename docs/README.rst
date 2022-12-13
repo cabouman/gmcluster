@@ -1,6 +1,6 @@
-gmcluster
------------
-**gmcluster** is an easy to use python-based library for EM clustering.
+GMCluster: An Unsupervised Algorithm for Modeling Gaussian Mixtures
+-------------------------------------------------------------------
+**gmcluster** is an easy to use python-based library for EM parameter estimation and classification using multivariate Gaussian mixture models.
 
 The original C package is available here:
 https://engineering.purdue.edu/~bouman/software/cluster/

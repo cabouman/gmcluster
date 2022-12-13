@@ -2,6 +2,8 @@
 Theory 
 ======
 
+This theory was originally published in Appendix A of :cite:`bouman97`.
+
 It is often desirable to model distributions that are composed of distinct subclasses or clusters. For example, a pixel in a image might behave differently if it comes from an edge rather than a smooth region. Therefore the aggregate behavior is likely to be a mixture of the two distinct behaviors. The objective of mixture distributions is to form a probabilistic model composed of a number of component subclasses. Each subclass is than characterized by a set of parameters describing the mean and variation of the spectral components. 
 
 In order to estimate the parameters of a Gaussian mixture, it is necessary to determine the number of subclasses and the parameters of each subclasses. This can be done by using a representative sample of training data and estimating the number of subclasses and their parameters from this data. 

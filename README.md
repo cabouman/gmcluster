@@ -1,7 +1,7 @@
 # GMCluster 
-EM Clustering Algorithm
+GMCluster: An Unsupervised Algorithm for Modeling Gaussian Mixtures
 
-*This is an EM clustering package for python that is based on the following C package:*
+*This is an EM-based clustering package for python that is based on the following C package:*
 >https://engineering.purdue.edu/~bouman/software/cluster/
 
 *The documentation for this package is available here:*
