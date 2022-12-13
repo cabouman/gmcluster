@@ -11,8 +11,4 @@ source install_gmcluster.sh
 
 # Install documentation
 source install_docs.sh
-<<<<<<< HEAD
-=======
-
->>>>>>> ce4eadfdc21a041b7a4078051a20d33487ab94f6
 
