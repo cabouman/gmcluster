@@ -8,4 +8,6 @@ source install_conda_environment.sh
 # Install gmcluster
 source install_gmcluster.sh
 
+# Install documentation
+source install_docs.sh
 
