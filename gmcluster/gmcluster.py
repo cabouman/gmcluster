@@ -183,7 +183,7 @@ def compute_class_likelihood(mixture, data):
 
     llmax = np.expand_dims(np.max(pnk, axis=1), axis=1)
     pnk = np.exp(pnk - llmax@np.ones((1, mixture.K)))
-    pnk = pnk*np.ones((N, 1))@pb_mat
+    pnk = pnk*(np.ones((N, 1))@pb_mat)
     ss = np.expand_dims(np.sum(pnk, axis=1), axis=1)
     ll = np.log(ss)+llmax
 
@@ -382,7 +382,7 @@ def E_step(mixture, data):
 
     llmax = np.expand_dims(np.max(pnk, axis=1), axis=1)
     pnk = np.exp(pnk - llmax@np.ones((1, mixture.K)))
-    pnk = pnk*np.ones((N, 1))@pb_mat
+    pnk = pnk*(np.ones((N, 1))@pb_mat)
     ss = np.expand_dims(np.sum(pnk, axis=1), axis=1)
     likelihood = np.sum(np.log(ss) + llmax)
     pnk = pnk/(ss@np.ones((1, mixture.K)))
@@ -414,7 +414,7 @@ def M_step(mixture, data, est_kind, alpha):
         cluster_obj = mixture.cluster[k]
         cluster_obj.N = np.sum(mixture.pnk[:, k])
         cluster_obj.pb = cluster_obj.N
-        cluster_obj.mu = np.expand_dims(data.T@mixture.pnk[:, k]/cluster_obj.N, axis=1)
+        cluster_obj.mu = np.expand_dims((data.T@mixture.pnk[:, k])/cluster_obj.N, axis=1)
 
         R = cluster_obj.R
         for r in range(mixture.M):
