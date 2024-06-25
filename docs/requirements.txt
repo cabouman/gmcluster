@@ -1,6 +1,6 @@
-sphinx>=2.2
-sphinx-rtd-theme>=0.5.1
+sphinx~=6.2.1
+sphinx-rtd-theme~=0.5.1
 sphinxcontrib-bibtex==1.0
-numpy>=1.21.2
 ruamel.yaml~=0.16.12
 psutil~=5.8.0
+numpy~=1.22.4

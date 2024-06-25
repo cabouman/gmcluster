@@ -6,7 +6,7 @@ cd ..
 conda deactivate
 conda deactivate
 conda remove env --name gmcluster --all
-conda create --name gmcluster python=3.8
+conda create --name gmcluster python=3.9
 conda activate gmcluster
 cd dev_scripts
 

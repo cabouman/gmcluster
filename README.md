@@ -41,7 +41,7 @@ cd gmcluster
 	  If you have Anaconda installed, you can run the following.
 
 		```
-		conda create --name gmcluster python=3.8
+		conda create --name gmcluster python=3.9
 		conda activate gmcluster
 		```
 
