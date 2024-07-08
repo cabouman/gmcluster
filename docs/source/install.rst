@@ -56,17 +56,6 @@ The ``gmcluster`` package currently is only available to download and install fr
 			.. code-block::
 	                	
 				pip install -e .
-
-	3. *Build the documentation:*
-	
-	   Use the following command to build the documentation.
-
-			.. code-block::
-			
-				cd docs
-				pip install -r requirements.txt
-				make clean html
-				cd ..
 				
 
 3. *Validate the installation by running a demo script:*
