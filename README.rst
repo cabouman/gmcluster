@@ -1,8 +1,16 @@
-============
-Installation 
-============
+GMCluster
+=========
 
-The ``gmcluster`` package currently is only available to download and install from source through GitHub.
+GMCluster: An Unsupervised Algorithm for Modeling Gaussian Mixtures
+
+*This is an EM-based clustering package for python that is based on the following C package:*
+>https://engineering.purdue.edu/~bouman/software/cluster/
+
+*The documentation for this package is available here:*
+>https://gmcluster.readthedocs.io/
+
+Installing
+----------
 
 1. *Clone or download the repository and get inside:*
 
@@ -67,12 +75,13 @@ The ``gmcluster`` package currently is only available to download and install fr
 				pip install -r requirements.txt
 				make clean html
 				cd ..
-				
 
-3. *Validate the installation by running a demo script:*
+Running Demo(s)
+---------------
+
+You can validate the installation by running demo scripts.
 
 .. code-block::
 
 	cd demo
 	python demo_1.py
-
