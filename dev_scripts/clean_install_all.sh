@@ -1,11 +1,11 @@
 #!/bin/bash
 # This script installs everything from scratch
 
-source remove_package.sh
-source install_conda_environment.sh
+yes | source remove_package.sh
+yes | source install_conda_environment.sh
 
-source install_package.sh
-source build_docs.sh
+yes | source install_package.sh
+yes | source build_docs.sh
 
 red=`tput setaf 1`
 reset=`tput sgr0`
