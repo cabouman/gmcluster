@@ -8,7 +8,7 @@ https://engineering.purdue.edu/~bouman/software/cluster/
 
 System Requirements
 -------------------
-1. Python>=3.8
+1. Python>=3.9
 
 
 Optional System Requirements
