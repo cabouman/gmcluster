@@ -88,7 +88,7 @@ def estimate_gm_params(data, init_K=20, final_K=0, verbose=True, est_kind='full'
 
     # Calculate the no. of parameters per cluster
     if est_kind == 'full':
-        nparams_clust = 1 + M + 0.5 * M * (M + 1)
+        nparams_clust = 1 + M + 0.5*M*(M + 1)
     else:
         nparams_clust = 1 + M + M
 
@@ -96,10 +96,10 @@ def estimate_gm_params(data, init_K=20, final_K=0, verbose=True, est_kind='full'
     ndata_points = np.size(data)
 
     # Calculate the maximum no.of allowed parameters to be estimated
-    max_params = (ndata_points + 1) / nparams_clust - 1
-    if init_K > (max_params / 2):
+    max_params = (ndata_points + 1)/nparams_clust - 1
+    if init_K > (max_params/2):
         print('Too many clusters for the given amount of data')
-        init_K = int(max_params / 2)
+        init_K = int(max_params/2)
         print('No. of clusters initialized to: ', str(init_K))
 
     mtr = init_mixture(data, init_K, est_kind, alpha)
@@ -176,14 +176,14 @@ def compute_class_likelihood(mixture, data):
 
     for k in range(mixture.K):
         cluster_obj = mixture.cluster[k]
-        Y1 = data-np.matmul(np.ones((N, 1)), np.transpose(cluster_obj.mu))
-        Y2 = -0.5*np.matmul(Y1, cluster_obj.invR)
-        pnk[:, k] = np.sum(Y1 * Y2, axis=1) + mixture.cluster[k].const
+        Y1 = data-np.ones((N, 1))@cluster_obj.mu.T
+        Y2 = -0.5*Y1@cluster_obj.invR
+        pnk[:, k] = np.sum(Y1*Y2, axis=1) + mixture.cluster[k].const
         pb_mat[0, k] = cluster_obj.pb
 
     llmax = np.expand_dims(np.max(pnk, axis=1), axis=1)
-    pnk = np.exp(pnk - np.matmul(llmax, np.ones((1, mixture.K))))
-    pnk = pnk * np.matmul(np.ones((N, 1)), pb_mat)
+    pnk = np.exp(pnk - llmax@np.ones((1, mixture.K)))
+    pnk = pnk*(np.ones((N, 1))@pb_mat)
     ss = np.expand_dims(np.sum(pnk, axis=1), axis=1)
     ll = np.log(ss)+llmax
 
@@ -203,7 +203,7 @@ def generate_gm_samples(mixture, N=500):
         totally N observations
         """
     gm_samples = np.zeros((mixture.M, N))
-    switch_var = np.matmul(np.ones((mixture.M, 1)), np.random.rand(1, N))
+    switch_var = np.ones((mixture.M, 1))@np.random.rand(1, N)
     pb_low = 0
 
     for k in range(mixture.K):
@@ -214,10 +214,10 @@ def generate_gm_samples(mixture, N=500):
 
         # Eigen decomposition
         [D, V] = np.linalg.eig(R)
-        A = np.matmul(V, np.diagflat(np.sqrt(D)))
+        A = V@np.diagflat(np.sqrt(D))
 
         # Generate data with the given distributions
-        x = np.matmul(A, np.random.randn(mixture.M, N)) + np.matmul(mu, np.ones((1, N)))
+        x = A@np.random.randn(mixture.M, N) + mu@np.ones((1, N))
 
         # Limit number of samples from the distribution using the given probability value
         switch_var_k = np.zeros(np.shape(switch_var))
@@ -226,9 +226,9 @@ def generate_gm_samples(mixture, N=500):
         pb_low = pb_high
 
         # Combine data from all distributions
-        gm_samples = gm_samples + switch_var_k * x
+        gm_samples = gm_samples + switch_var_k*x
 
-    return np.transpose(gm_samples)
+    return gm_samples.T
 
 
 def cluster_normalize(mixture):
@@ -252,7 +252,7 @@ def cluster_normalize(mixture):
         cluster_obj = cluster[k]
         cluster_obj.pb = cluster_obj.pb/s
         cluster_obj.invR = np.linalg.inv(cluster_obj.R)
-        cluster_obj.const = -(mixture.M*np.log(2 * np.pi) + np.log(np.linalg.det(cluster_obj.R))) / 2
+        cluster_obj.const = -(mixture.M*np.log(2*np.pi) + np.log(np.linalg.det(cluster_obj.R)))/2
         cluster[k] = cluster_obj
     mixture.cluster = cluster
 
@@ -289,7 +289,7 @@ def ridge_regression(R, est_kind, alpha, D_reg=None):
         return_D_reg = False
 
     # Ensure that the alpha of R is <= alpha
-    R = (1.0 - (alpha**2)) * R + (alpha**2) * D_reg
+    R = (1.0 - (alpha**2))*R + (alpha**2)*D_reg
 
     if return_D_reg:
         return R, D_reg
@@ -321,7 +321,7 @@ def init_mixture(data, K, est_kind, alpha):
     mixture.M = M
 
     # Compute sample covariance for entire data set
-    R = (N - 1) * np.cov(data, rowvar=False) / N
+    R = (N - 1)*np.cov(data, rowvar=False)/N
 
     # Regularize the covariance matrix and impose constrains
     R, D_reg = ridge_regression(R, est_kind, alpha)
@@ -339,12 +339,12 @@ def init_mixture(data, K, est_kind, alpha):
 
     # Initialize remaining clusters in array
     if K > 1:
-        period = (N - 1) / (K - 1)
+        period = (N - 1)/(K - 1)
         for k in range(1, K):
             cluster_obj = ClusterObj()
             cluster_obj.N = 0
             cluster_obj.pb = 1/K
-            cluster_obj.mu = np.expand_dims(data[int((k - 1) * period + 1), :], 1)
+            cluster_obj.mu = np.expand_dims(data[int((k - 1)*period + 1), :], 1)
             cluster_obj.R = R
             cluster[k] = cluster_obj
 
@@ -375,17 +375,17 @@ def E_step(mixture, data):
 
     for k in range(mixture.K):
         cluster_obj = mixture.cluster[k]
-        Y1 = data - np.matmul(np.ones((N, 1)), np.transpose(cluster_obj.mu))
-        Y2 = -0.5 * np.matmul(Y1, cluster_obj.invR)
-        pnk[:, k] = np.sum(Y1 * Y2, axis=1) + cluster_obj.const
+        Y1 = data - np.ones((N, 1))@cluster_obj.mu.T
+        Y2 = -0.5*Y1@cluster_obj.invR
+        pnk[:, k] = np.sum(Y1*Y2, axis=1) + cluster_obj.const
         pb_mat[0, k] = cluster_obj.pb
 
     llmax = np.expand_dims(np.max(pnk, axis=1), axis=1)
-    pnk = np.exp(pnk - np.matmul(llmax, np.ones((1, mixture.K))))
-    pnk = pnk * np.matmul(np.ones((N, 1)), pb_mat)
+    pnk = np.exp(pnk - llmax@np.ones((1, mixture.K)))
+    pnk = pnk*(np.ones((N, 1))@pb_mat)
     ss = np.expand_dims(np.sum(pnk, axis=1), axis=1)
     likelihood = np.sum(np.log(ss) + llmax)
-    pnk = pnk / np.matmul(ss, np.ones((1, mixture.K)))
+    pnk = pnk/(ss@np.ones((1, mixture.K)))
     mixture.pnk = pnk
 
     return mixture, likelihood
@@ -414,13 +414,13 @@ def M_step(mixture, data, est_kind, alpha):
         cluster_obj = mixture.cluster[k]
         cluster_obj.N = np.sum(mixture.pnk[:, k])
         cluster_obj.pb = cluster_obj.N
-        cluster_obj.mu = np.expand_dims(np.matmul(np.transpose(data), mixture.pnk[:, k]) / cluster_obj.N, axis=1)
+        cluster_obj.mu = np.expand_dims((data.T@mixture.pnk[:, k])/cluster_obj.N, axis=1)
 
         R = cluster_obj.R
         for r in range(mixture.M):
             for s in range(r, mixture.M):
-                R[r, s] = np.matmul(np.transpose(data[:, r] - cluster_obj.mu[r]),
-                                    ((data[:, s] - cluster_obj.mu[s]) * mixture.pnk[:, k])) / cluster_obj.N
+                R[r, s] = ((data[:, r] - cluster_obj.mu[r]).T@((data[:, s] - cluster_obj.mu[s])*mixture.pnk[:, k]))\
+                          /cluster_obj.N
                 if r != s:
                     R[s, r] = R[r, s]
 
@@ -455,11 +455,11 @@ def EM_iterate(mixture, data, est_kind, alpha):
     [N, M] = np.shape(data)
 
     if est_kind == 'full':
-        Lc = 1 + M + 0.5 * M * (M + 1)
+        Lc = 1 + M + 0.5*M*(M + 1)
     else:
         Lc = 1 + M + M
 
-    epsilon = 0.01 * Lc * np.log(N * M)
+    epsilon = 0.01*Lc*np.log(N*M)
     [mixture, ll_new] = E_step(mixture, data)
 
     while True:
@@ -469,7 +469,7 @@ def EM_iterate(mixture, data, est_kind, alpha):
         if (ll_new - ll_old) <= epsilon:
             break
 
-    mixture.rissanen = -ll_new + 0.5 * (mixture.K * Lc - 1) * np.log(N * M)
+    mixture.rissanen = -ll_new + 0.5*(mixture.K*Lc - 1)*np.log(N*M)
     mixture.loglikelihood = ll_new
 
     return mixture
@@ -485,18 +485,18 @@ def add_cluster(cluster1, cluster2):
     Returns:
         class object: the combined cluster
         """
-    wt1 = cluster1.N / (cluster1.N + cluster2.N)
+    wt1 = cluster1.N/(cluster1.N + cluster2.N)
     wt2 = 1 - wt1
     M = np.shape(cluster1.mu)[0]
 
     cluster3 = ClusterObj()
-    cluster3.mu = wt1 * cluster1.mu + wt2 * cluster2.mu
-    cluster3.R = wt1 * (cluster1.R + np.matmul(cluster3.mu - cluster1.mu, np.transpose(cluster3.mu - cluster1.mu)))\
-                 + wt2 * (cluster2.R + np.matmul(cluster3.mu-cluster2.mu, np.transpose(cluster3.mu - cluster2.mu)))
+    cluster3.mu = wt1*cluster1.mu + wt2*cluster2.mu
+    cluster3.R = wt1*(cluster1.R + (cluster3.mu - cluster1.mu)@(cluster3.mu - cluster1.mu).T)\
+                 + wt2*(cluster2.R + (cluster3.mu-cluster2.mu)@(cluster3.mu - cluster2.mu).T)
     cluster3.invR = np.linalg.inv(cluster3.R)
     cluster3.pb = cluster1.pb + cluster2.pb
     cluster3.N = cluster1.N + cluster2.N
-    cluster3.const = -(M * np.log(2 * np.pi) + np.log(np.linalg.det(cluster3.R))) / 2
+    cluster3.const = -(M*np.log(2*np.pi) + np.log(np.linalg.det(cluster3.R)))/2
 
     return cluster3
 
@@ -512,7 +512,7 @@ def distance(cluster1, cluster2):
         float: distance between the two clusters
         """
     cluster3 = add_cluster(cluster1, cluster2)
-    dist = cluster1.N * cluster1.const + cluster2.N * cluster2.const - cluster3.N * cluster3.const
+    dist = cluster1.N*cluster1.const + cluster2.N*cluster2.const - cluster3.N*cluster3.const
 
     return dist
 
@@ -567,9 +567,8 @@ def decorrelate_and_normalize(data):
     scov = np.cov(data, rowvar=False)
     D, E = np.linalg.eig(scov)
     D = np.diag(D)
-    T = np.matmul(E, np.linalg.inv(np.sqrt(D)))
-    data = np.matmul(
-        data - np.transpose(np.matmul(np.diag(smean), np.ones((np.shape(data)[1], np.shape(data)[0])))), T)
+    T = E@np.linalg.inv(np.sqrt(D))
+    data = (data - (np.diag(smean)@np.ones((np.shape(data)[1], np.shape(data)[0]))).T)@T
 
     return data, T, smean
 
@@ -590,11 +589,11 @@ def transform_back_to_original_coordinates(opt_mixture, T, smean):
     invT = np.linalg.inv(T)
     # Transform the parameters back to original coordinates
     for k in range(opt_mixture.K):
-        opt_mixture.cluster[k].mu = np.transpose(np.matmul(np.transpose(opt_mixture.cluster[k].mu), invT) + smean)
-        opt_mixture.cluster[k].R = np.matmul(np.transpose(invT), np.matmul(opt_mixture.cluster[k].R, invT))
-        opt_mixture.cluster[k].invR = np.matmul(T, np.matmul(opt_mixture.cluster[k].invR, np.transpose(T)))
+        opt_mixture.cluster[k].mu = (opt_mixture.cluster[k].mu.T@invT + smean).T
+        opt_mixture.cluster[k].R = invT.T@opt_mixture.cluster[k].R@invT
+        opt_mixture.cluster[k].invR = T@opt_mixture.cluster[k].invR@T.T
         opt_mixture.cluster[k].const = opt_mixture.cluster[k].const - np.log(
-            np.linalg.det(np.matmul(np.transpose(invT), invT))) / 2
+            np.linalg.det(invT.T@invT))/2
 
     return opt_mixture
 
