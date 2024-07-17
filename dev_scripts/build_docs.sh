@@ -4,6 +4,7 @@
 cd ../docs
 /bin/rm -r build
 
+conda activate gmcluster
 make clean html
 
 echo ""
