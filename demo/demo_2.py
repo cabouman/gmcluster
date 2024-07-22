@@ -47,11 +47,11 @@ mu_1 = [mu_10, mu_11, mu_12]  # cluster means for class 1
 mu_all = [mu_0, mu_1]  # cluster means for class 0 and class 1
 
 # Create the 2 mixtures with the above GM parameters
-mixtures = [None]*2
+mixtures = [None] * 2
 for i in range(2):
     mu = mu_all[i]
 
-    cluster = [None]*3
+    cluster = [None] * 3
     for j in range(3):
         cluster_obj = ClusterObj()
         cluster_obj.pb = pb[j]
@@ -68,8 +68,8 @@ for i in range(2):
 # Generate demo data
 train_data_0 = gmcluster.generate_gm_samples(mixtures[0], N)
 train_data_1 = gmcluster.generate_gm_samples(mixtures[1], N)
-test_data_0 = gmcluster.generate_gm_samples(mixtures[0], N//5)
-test_data_1 = gmcluster.generate_gm_samples(mixtures[1], N//5)
+test_data_0 = gmcluster.generate_gm_samples(mixtures[0], N // 5)
+test_data_1 = gmcluster.generate_gm_samples(mixtures[1], N // 5)
 test_data = np.concatenate((test_data_0, test_data_1), axis=0)
 
 # Plot the generated training data for class 0 and class 1
@@ -98,7 +98,6 @@ for i in range(class_0.K):
     print('pi: ', cluster_obj.pb)
     print('mean: \n', cluster_obj.mu)
     print('covar: \n', cluster_obj.R, '\n')
-
 
 # Estimate optimal order and clustering data for class 1
 class_1 = gmcluster.estimate_gm_params(train_data_1)

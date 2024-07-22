@@ -41,7 +41,7 @@ mu_2 = [[5.5], [2]]
 mu = [mu_0, mu_1, mu_2]  # cluster means
 
 # Create the mixture with GM parameters
-cluster = [None]*3
+cluster = [None] * 3
 for i in range(3):
     cluster_obj = ClusterObj()
     cluster_obj.pb = pb[i]
