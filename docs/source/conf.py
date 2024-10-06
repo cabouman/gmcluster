@@ -30,8 +30,8 @@ def setup(app):
 # -- Project information -----------------------------------------------------
 
 project = 'gmcluster'
-copyright = '2022, gmcluster Development Team'
-author = 'gmcluster Development Team'
+copyright = '2022, Charles A Bouman'
+author = 'GMCluster Development Team'
 
 # The full version, including alpha/beta/rc tags
 release = '0.0.1'
