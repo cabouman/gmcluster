@@ -33,7 +33,8 @@ class ClusterObj:
         self.const = None
 
 
-def estimate_gm_params(data, init_K=20, final_K=0, verbose=True, est_kind='full', decorrelate_coordinates=False, alpha=0.1):
+def estimate_gm_params(data, init_K=20, final_K=0, verbose=True, est_kind='full', decorrelate_coordinates=False,
+                       alpha=0.1):
     """Function to perform the EM algorithm to estimate the order, and parameters of a Gaussian mixture model for a
     given set of observations.
 
@@ -44,7 +45,7 @@ def estimate_gm_params(data, init_K=20, final_K=0, verbose=True, est_kind='full'
             or the desired order based on MDL
         final_K(int,optional): the final number of clusters for the model. Estimate the optimal order if final_K == 0
         verbose(bool,optional): true/false, return clustering information if true
-        est_kind(string,optional):
+        est_kind(str,optional):
             - est_kind = 'diag' constrains the class covariance matrices to be diagonal
             - est_kind = 'full' allows the class covariance matrices to be full matrices
         decorrelate_coordinates(bool,optional): true/false, decorrelate the coordinates to better condition the problem
@@ -88,7 +89,7 @@ def estimate_gm_params(data, init_K=20, final_K=0, verbose=True, est_kind='full'
 
     # Calculate the no. of parameters per cluster
     if est_kind == 'full':
-        nparams_clust = 1 + M + 0.5*M*(M + 1)
+        nparams_clust = 1 + M + 0.5 * M * (M + 1)
     else:
         nparams_clust = 1 + M + M
 
@@ -96,10 +97,10 @@ def estimate_gm_params(data, init_K=20, final_K=0, verbose=True, est_kind='full'
     ndata_points = np.size(data)
 
     # Calculate the maximum no.of allowed parameters to be estimated
-    max_params = (ndata_points + 1)/nparams_clust - 1
-    if init_K > (max_params/2):
+    max_params = (ndata_points + 1) / nparams_clust - 1
+    if init_K > (max_params / 2):
         print('Too many clusters for the given amount of data')
-        init_K = int(max_params/2)
+        init_K = int(max_params / 2)
         print('No. of clusters initialized to: ', str(init_K))
 
     mtr = init_mixture(data, init_K, est_kind, alpha)
@@ -108,7 +109,7 @@ def estimate_gm_params(data, init_K=20, final_K=0, verbose=True, est_kind='full'
     if verbose:
         print('K: ', mtr.K, 'rissanen: ', mtr.rissanen)
 
-    mixture = [None]*(mtr.K - max(1, final_K)+1)
+    mixture = [None] * (mtr.K - max(1, final_K) + 1)
     mixture[mtr.K - max(1, final_K)] = copy.deepcopy(mtr)
     while mtr.K > max(1, final_K):
         mtr = MDL_reduce_order(mtr, verbose)
@@ -121,8 +122,8 @@ def estimate_gm_params(data, init_K=20, final_K=0, verbose=True, est_kind='full'
         opt_mixture = mixture[0]
     else:
         min_riss = mixture[-1].rissanen
-        opt_l = len(mixture)-1
-        for l in range(len(mixture)-2, -1, -1):
+        opt_l = len(mixture) - 1
+        for l in range(len(mixture) - 2, -1, -1):
             if mixture[l].rissanen < min_riss:
                 min_riss = mixture[l].rissanen
                 opt_l = l
@@ -146,7 +147,7 @@ def split_classes(mixture):
         original subclasses)
 
         """
-    classes = [None]*mixture.K
+    classes = [None] * mixture.K
 
     for k in range(mixture.K):
         classes[k] = copy.deepcopy(mixture)
@@ -176,16 +177,16 @@ def compute_class_likelihood(mixture, data):
 
     for k in range(mixture.K):
         cluster_obj = mixture.cluster[k]
-        Y1 = data-np.ones((N, 1))@cluster_obj.mu.T
-        Y2 = -0.5*Y1@cluster_obj.invR
-        pnk[:, k] = np.sum(Y1*Y2, axis=1) + mixture.cluster[k].const
+        Y1 = data - np.ones((N, 1)) @ cluster_obj.mu.T
+        Y2 = -0.5 * Y1 @ cluster_obj.invR
+        pnk[:, k] = np.sum(Y1 * Y2, axis=1) + mixture.cluster[k].const
         pb_mat[0, k] = cluster_obj.pb
 
     llmax = np.expand_dims(np.max(pnk, axis=1), axis=1)
-    pnk = np.exp(pnk - llmax@np.ones((1, mixture.K)))
-    pnk = pnk*(np.ones((N, 1))@pb_mat)
+    pnk = np.exp(pnk - llmax @ np.ones((1, mixture.K)))
+    pnk = pnk * (np.ones((N, 1)) @ pb_mat)
     ss = np.expand_dims(np.sum(pnk, axis=1), axis=1)
-    ll = np.log(ss)+llmax
+    ll = np.log(ss) + llmax
 
     return ll
 
@@ -203,7 +204,7 @@ def generate_gm_samples(mixture, N=500):
         totally N observations
         """
     gm_samples = np.zeros((mixture.M, N))
-    switch_var = np.ones((mixture.M, 1))@np.random.rand(1, N)
+    switch_var = np.ones((mixture.M, 1)) @ np.random.rand(1, N)
     pb_low = 0
 
     for k in range(mixture.K):
@@ -214,10 +215,10 @@ def generate_gm_samples(mixture, N=500):
 
         # Eigen decomposition
         [D, V] = np.linalg.eig(R)
-        A = V@np.diagflat(np.sqrt(D))
+        A = V @ np.diagflat(np.sqrt(D))
 
         # Generate data with the given distributions
-        x = A@np.random.randn(mixture.M, N) + mu@np.ones((1, N))
+        x = A @ np.random.randn(mixture.M, N) + mu @ np.ones((1, N))
 
         # Limit number of samples from the distribution using the given probability value
         switch_var_k = np.zeros(np.shape(switch_var))
@@ -226,7 +227,7 @@ def generate_gm_samples(mixture, N=500):
         pb_low = pb_high
 
         # Combine data from all distributions
-        gm_samples = gm_samples + switch_var_k*x
+        gm_samples = gm_samples + switch_var_k * x
 
     return gm_samples.T
 
@@ -250,9 +251,9 @@ def cluster_normalize(mixture):
 
     for k in range(mixture.K):
         cluster_obj = cluster[k]
-        cluster_obj.pb = cluster_obj.pb/s
+        cluster_obj.pb = cluster_obj.pb / s
         cluster_obj.invR = np.linalg.inv(cluster_obj.R)
-        cluster_obj.const = -(mixture.M*np.log(2*np.pi) + np.log(np.linalg.det(cluster_obj.R)))/2
+        cluster_obj.const = -(mixture.M * np.log(2 * np.pi) + np.log(np.linalg.det(cluster_obj.R))) / 2
         cluster[k] = cluster_obj
     mixture.cluster = cluster
 
@@ -264,7 +265,7 @@ def ridge_regression(R, est_kind, alpha, D_reg=None):
 
     Args:
         R(ndarray): the initial class covariance matrix
-        est_kind(string):
+        est_kind(str):
             - est_kind = 'diag' constrains the class covariance matrices to be diagonal
             - est_kind = 'full' allows the class covariance matrices to be full matrices
         alpha(float): a constant (0 < alpha <= 1) that controls the shape of the cluster by regularizing the covariance
@@ -284,12 +285,12 @@ def ridge_regression(R, est_kind, alpha, D_reg=None):
 
     if D_reg is None:
         return_D_reg = True
-        D_reg = np.mean(np.diag(R))*np.eye(R.shape[0])
+        D_reg = np.mean(np.diag(R)) * np.eye(R.shape[0])
     else:
         return_D_reg = False
 
     # Ensure that the alpha of R is <= alpha
-    R = (1.0 - (alpha**2))*R + (alpha**2)*D_reg
+    R = (1.0 - (alpha ** 2)) * R + (alpha ** 2) * D_reg
 
     if return_D_reg:
         return R, D_reg
@@ -304,7 +305,7 @@ def init_mixture(data, K, est_kind, alpha):
         data(ndarray): an N x M 2D array of observation vectors with each row being an M-dimensional observation vector,
             totally N observations
         K(int): order of the mixture
-        est_kind(string):
+        est_kind(str):
             - est_kind = 'diag' constrains the class covariance matrices to be diagonal
             - est_kind = 'full' allows the class covariance matrices to be full matrices
         alpha(float): a constant (0 < alpha <= 1) that controls the shape of the cluster by regularizing the covariance
@@ -321,30 +322,30 @@ def init_mixture(data, K, est_kind, alpha):
     mixture.M = M
 
     # Compute sample covariance for entire data set
-    R = (N - 1)*np.cov(data, rowvar=False)/N
+    R = (N - 1) * np.cov(data, rowvar=False) / N
 
     # Regularize the covariance matrix and impose constrains
     R, D_reg = ridge_regression(R, est_kind, alpha)
 
     # Allocate and array of K clusters
-    cluster = [None]*K
+    cluster = [None] * K
 
     # Initalize first element of cluster
     cluster_obj = ClusterObj()
     cluster_obj.N = 0
-    cluster_obj.pb = 1/K
+    cluster_obj.pb = 1 / K
     cluster_obj.mu = np.expand_dims(data[0, :], 1)
     cluster_obj.R = R
     cluster[0] = cluster_obj
 
     # Initialize remaining clusters in array
     if K > 1:
-        period = (N - 1)/(K - 1)
+        period = (N - 1) / (K - 1)
         for k in range(1, K):
             cluster_obj = ClusterObj()
             cluster_obj.N = 0
-            cluster_obj.pb = 1/K
-            cluster_obj.mu = np.expand_dims(data[int((k - 1)*period + 1), :], 1)
+            cluster_obj.pb = 1 / K
+            cluster_obj.mu = np.expand_dims(data[int((k - 1) * period + 1), :], 1)
             cluster_obj.R = R
             cluster[k] = cluster_obj
 
@@ -357,8 +358,8 @@ def init_mixture(data, K, est_kind, alpha):
 
 def E_step(mixture, data):
     """Function to perform the E-step of the EM algorithm
-    	1) calculate pnk = Prob(Xn=k|Yn=yn, theta)
-    	2) calculate likelihood = log ( prob(Y=y|theta) )
+        1) calculate pnk = Prob(Xn=k|Yn=yn, theta)
+        2) calculate likelihood = log ( prob(Y=y|theta) )
 
     Args:
         mixture(class): a structure representing the parameters for a Gaussian mixture of a given order
@@ -375,17 +376,17 @@ def E_step(mixture, data):
 
     for k in range(mixture.K):
         cluster_obj = mixture.cluster[k]
-        Y1 = data - np.ones((N, 1))@cluster_obj.mu.T
-        Y2 = -0.5*Y1@cluster_obj.invR
-        pnk[:, k] = np.sum(Y1*Y2, axis=1) + cluster_obj.const
+        Y1 = data - np.ones((N, 1)) @ cluster_obj.mu.T
+        Y2 = -0.5 * Y1 @ cluster_obj.invR
+        pnk[:, k] = np.sum(Y1 * Y2, axis=1) + cluster_obj.const
         pb_mat[0, k] = cluster_obj.pb
 
     llmax = np.expand_dims(np.max(pnk, axis=1), axis=1)
-    pnk = np.exp(pnk - llmax@np.ones((1, mixture.K)))
-    pnk = pnk*(np.ones((N, 1))@pb_mat)
+    pnk = np.exp(pnk - llmax @ np.ones((1, mixture.K)))
+    pnk = pnk * (np.ones((N, 1)) @ pb_mat)
     ss = np.expand_dims(np.sum(pnk, axis=1), axis=1)
     likelihood = np.sum(np.log(ss) + llmax)
-    pnk = pnk/(ss@np.ones((1, mixture.K)))
+    pnk = pnk / (ss @ np.ones((1, mixture.K)))
     mixture.pnk = pnk
 
     return mixture, likelihood
@@ -399,7 +400,7 @@ def M_step(mixture, data, est_kind, alpha):
         mixture(class): a structure representing the parameters for a Gaussian mixture of a given order
         data(ndarray): an N x M 2D array of observation vectors with each row being an M-dimensional observation vector,
             totally N observations
-        est_kind(string):
+        est_kind(str):
             - est_kind = 'diag' constrains the class covariance matrices to be diagonal
             - est_kind = 'full' allows the class covariance matrices to be full matrices
         alpha(float): a constant (0 < alpha <= 1) that controls the shape of the cluster by regularizing the covariance
@@ -414,13 +415,13 @@ def M_step(mixture, data, est_kind, alpha):
         cluster_obj = mixture.cluster[k]
         cluster_obj.N = np.sum(mixture.pnk[:, k])
         cluster_obj.pb = cluster_obj.N
-        cluster_obj.mu = np.expand_dims((data.T@mixture.pnk[:, k])/cluster_obj.N, axis=1)
+        cluster_obj.mu = np.expand_dims((data.T @ mixture.pnk[:, k]) / cluster_obj.N, axis=1)
 
         R = cluster_obj.R
         for r in range(mixture.M):
             for s in range(r, mixture.M):
-                R[r, s] = ((data[:, r] - cluster_obj.mu[r]).T@((data[:, s] - cluster_obj.mu[s])*mixture.pnk[:, k]))\
-                          /cluster_obj.N
+                R[r, s] = ((data[:, r] - cluster_obj.mu[r]).T @ ((data[:, s] - cluster_obj.mu[s]) * mixture.pnk[:, k])) \
+                          / cluster_obj.N
                 if r != s:
                     R[s, r] = R[r, s]
 
@@ -442,7 +443,7 @@ def EM_iterate(mixture, data, est_kind, alpha):
         mixture(class): a structure representing the parameters for a Gaussian mixture of a given order
         data(ndarray): an N x M 2D array of observation vectors with each row being an M-dimensional observation vector,
             totally N observations
-        est_kind(string):
+        est_kind(str):
             - est_kind = 'diag' constrains the class covariance matrices to be diagonal
             - est_kind = 'full' allows the class covariance matrices to be full matrices
         alpha(float): a constant (0 < alpha <= 1) that controls the shape of the cluster by regularizing the covariance
@@ -455,11 +456,11 @@ def EM_iterate(mixture, data, est_kind, alpha):
     [N, M] = np.shape(data)
 
     if est_kind == 'full':
-        Lc = 1 + M + 0.5*M*(M + 1)
+        Lc = 1 + M + 0.5 * M * (M + 1)
     else:
         Lc = 1 + M + M
 
-    epsilon = 0.01*Lc*np.log(N*M)
+    epsilon = 0.01 * Lc * np.log(N * M)
     [mixture, ll_new] = E_step(mixture, data)
 
     while True:
@@ -469,7 +470,7 @@ def EM_iterate(mixture, data, est_kind, alpha):
         if (ll_new - ll_old) <= epsilon:
             break
 
-    mixture.rissanen = -ll_new + 0.5*(mixture.K*Lc - 1)*np.log(N*M)
+    mixture.rissanen = -ll_new + 0.5 * (mixture.K * Lc - 1) * np.log(N * M)
     mixture.loglikelihood = ll_new
 
     return mixture
@@ -485,18 +486,18 @@ def add_cluster(cluster1, cluster2):
     Returns:
         class object: the combined cluster
         """
-    wt1 = cluster1.N/(cluster1.N + cluster2.N)
+    wt1 = cluster1.N / (cluster1.N + cluster2.N)
     wt2 = 1 - wt1
     M = np.shape(cluster1.mu)[0]
 
     cluster3 = ClusterObj()
-    cluster3.mu = wt1*cluster1.mu + wt2*cluster2.mu
-    cluster3.R = wt1*(cluster1.R + (cluster3.mu - cluster1.mu)@(cluster3.mu - cluster1.mu).T)\
-                 + wt2*(cluster2.R + (cluster3.mu-cluster2.mu)@(cluster3.mu - cluster2.mu).T)
+    cluster3.mu = wt1 * cluster1.mu + wt2 * cluster2.mu
+    cluster3.R = wt1 * (cluster1.R + (cluster3.mu - cluster1.mu) @ (cluster3.mu - cluster1.mu).T) \
+                 + wt2 * (cluster2.R + (cluster3.mu - cluster2.mu) @ (cluster3.mu - cluster2.mu).T)
     cluster3.invR = np.linalg.inv(cluster3.R)
     cluster3.pb = cluster1.pb + cluster2.pb
     cluster3.N = cluster1.N + cluster2.N
-    cluster3.const = -(M*np.log(2*np.pi) + np.log(np.linalg.det(cluster3.R)))/2
+    cluster3.const = -(M * np.log(2 * np.pi) + np.log(np.linalg.det(cluster3.R))) / 2
 
     return cluster3
 
@@ -512,7 +513,7 @@ def distance(cluster1, cluster2):
         float: distance between the two clusters
         """
     cluster3 = add_cluster(cluster1, cluster2)
-    dist = cluster1.N*cluster1.const + cluster2.N*cluster2.const - cluster3.N*cluster3.const
+    dist = cluster1.N * cluster1.const + cluster2.N * cluster2.const - cluster3.N * cluster3.const
 
     return dist
 
@@ -528,10 +529,10 @@ def MDL_reduce_order(mixture, verbose):
         class object: a structure containing the parameters for the converged Gaussian mixture of order (K-1)
         """
     K = mixture.K
-    
+
     min_dist = np.inf
     for k1 in range(K):
-        for k2 in range(k1+1, K):
+        for k2 in range(k1 + 1, K):
             dist = distance(mixture.cluster[k1], mixture.cluster[k2])
             if (k1 == 0 and k2 == 1) or (dist < min_dist):
                 mink1 = k1
@@ -567,8 +568,8 @@ def decorrelate_and_normalize(data):
     scov = np.cov(data, rowvar=False)
     D, E = np.linalg.eig(scov)
     D = np.diag(D)
-    T = E@np.linalg.inv(np.sqrt(D))
-    data = (data - (np.diag(smean)@np.ones((np.shape(data)[1], np.shape(data)[0]))).T)@T
+    T = E @ np.linalg.inv(np.sqrt(D))
+    data = (data - (np.diag(smean) @ np.ones((np.shape(data)[1], np.shape(data)[0]))).T) @ T
 
     return data, T, smean
 
@@ -584,16 +585,15 @@ def transform_back_to_original_coordinates(opt_mixture, T, smean):
 
     Returns:
         class object: a structure representing the optimum Gaussian mixture parameters corresponding to original
-            coordinates
+        coordinates
         """
     invT = np.linalg.inv(T)
     # Transform the parameters back to original coordinates
     for k in range(opt_mixture.K):
-        opt_mixture.cluster[k].mu = (opt_mixture.cluster[k].mu.T@invT + smean).T
-        opt_mixture.cluster[k].R = invT.T@opt_mixture.cluster[k].R@invT
-        opt_mixture.cluster[k].invR = T@opt_mixture.cluster[k].invR@T.T
+        opt_mixture.cluster[k].mu = (opt_mixture.cluster[k].mu.T @ invT + smean).T
+        opt_mixture.cluster[k].R = invT.T @ opt_mixture.cluster[k].R @ invT
+        opt_mixture.cluster[k].invR = T @ opt_mixture.cluster[k].invR @ T.T
         opt_mixture.cluster[k].const = opt_mixture.cluster[k].const - np.log(
-            np.linalg.det(invT.T@invT))/2
+            np.linalg.det(invT.T @ invT)) / 2
 
     return opt_mixture
-

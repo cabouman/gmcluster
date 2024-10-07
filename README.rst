@@ -43,7 +43,6 @@ Installing
 	
 				conda create --name gmcluster python=3.9
 				conda activate gmcluster
-				pip install -r requirements.txt
 
             Anytime you want to use this package, this ``gmcluster`` environment should be activated with the following:
 
@@ -51,7 +50,15 @@ Installing
 	
 				conda activate gmcluster
 
-        2. *Install gmcluster package:*
+	2. *Install the dependencies:*
+
+	   To install the packages, use the following command.
+	                	
+			.. code-block::
+	
+	                	pip install -r requirements.txt
+
+        3. *Install gmcluster package:*
 
             Use the following command to install the package.
 
@@ -65,7 +72,7 @@ Installing
 	                	
 				pip install -e .
 
-	3. *Build the documentation:*
+	4. *Build the documentation:*
 	
 	   Use the following command to build the documentation.
 

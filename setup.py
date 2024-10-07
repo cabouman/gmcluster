@@ -7,8 +7,8 @@ DESCR = "Python code for EM algorithm-based clustering"
 REQUIRES = ['numpy', 'matplotlib']
 LICENSE = "BSD-3-Clause"
 
-AUTHOR = 'gmcluster development team'
-EMAIL = "buzzard@purdue.edu"
+AUTHOR = 'GMCluster development team'
+EMAIL = "bouman@purdue.edu"
 PACKAGE_DIR = "gmcluster"
 
 setup(install_requires=REQUIRES,
