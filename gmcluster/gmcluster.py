@@ -585,7 +585,7 @@ def transform_back_to_original_coordinates(opt_mixture, T, smean):
 
     Returns:
         class object: a structure representing the optimum Gaussian mixture parameters corresponding to original
-            coordinates
+        coordinates
         """
     invT = np.linalg.inv(T)
     # Transform the parameters back to original coordinates
