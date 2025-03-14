@@ -2,7 +2,8 @@
 Installation 
 ============
 
-The ``gmcluster`` package currently is only available to download and install from source through GitHub.
+The ``gmcluster`` package is currently only available to download and install from source available through GitHub at `GMCluster <https://github.com/cabouman/gmcluster>`_.
+
 
 1. *Clone or download the repository and get inside:*
 
