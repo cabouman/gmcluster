@@ -1,75 +1,35 @@
 ============
-Installation 
+Installation
 ============
 
-The ``gmcluster`` package is currently only available to download and install from source available through GitHub at `GMCluster <https://github.com/cabouman/gmcluster>`_.
+Install the latest release from PyPI::
 
+    pip install gmcluster
 
-1. *Clone or download the repository and get inside:*
+That is all most users need.
 
-.. code-block::
+Install from source
+--------------------
 
-	git clone https://github.com/cabouman/gmcluster.git
-	cd gmcluster
+For development, or to use the current development branch, install from the
+`GitHub repository <https://github.com/cabouman/gmcluster>`_.
 
-2. Install the conda environment and package
+1. Clone the repository::
 
-    a. Option 1: Clean install from dev_scripts
+       git clone https://github.com/cabouman/gmcluster.git
+       cd gmcluster
 
-        *******You can skip all other steps if you do a clean install.******
+2. (Optional) create and activate a conda environment::
 
-        To do a clean install, use the command:
+       conda create --name gmcluster python=3.11
+       conda activate gmcluster
 
-		.. code-block::
+3. Install the package.  Use ``-e`` for an editable install that reflects
+   source edits::
 
-			cd dev_scripts
-			source clean_install_all.sh
-			cd ..
+       pip install -e .
 
-    b. Option 2: Manual install
+Validate the installation by running a demo::
 
-        1. *Create conda environment:*
-
-            Create a new conda environment named ``gmcluster`` using the following commands:
-
-			.. code-block::
-	
-				conda create --name gmcluster python=3.9
-				conda activate gmcluster
-
-            Anytime you want to use this package, this ``gmcluster`` environment should be activated with the following:
-
-			.. code-block::
-	
-				conda activate gmcluster
-
-	2. *Install the dependencies:*
-
-	   To install the packages, use the following command.
-	                	
-			.. code-block::
-	
-	                	pip install -r requirements.txt
-
-        3. *Install gmcluster package:*
-
-            Use the following command to install the package.
-
-			.. code-block::
-	
-	                	pip install .
-
-            To allow editing of the package source while using the package, use
-
-			.. code-block::
-	                	
-				pip install -e .
-				
-
-3. *Validate the installation by running a demo script:*
-
-.. code-block::
-
-	cd demo
-	python demo_1.py
-
+    cd demo
+    python demo_1.py
