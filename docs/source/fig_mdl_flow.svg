@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 660" width="520" height="660" font-family="'DejaVu Sans','Helvetica Neue',Helvetica,Arial,sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/>
+    </marker>
+    <marker id="arrowRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#e11d48"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="520" height="660" fill="white"/>
+
+  <!-- ============ process boxes ============ -->
+  <!-- 1. Start (dark bookend) -->
+  <rect x="120" y="30" width="280" height="56" rx="14" ry="14" fill="#161a20"/>
+  <text x="260" y="64" text-anchor="middle" font-size="16" font-weight="600" fill="#ffffff">Start with max_clusters</text>
+
+  <!-- 2. Run EM -->
+  <rect x="120" y="146" width="280" height="56" rx="14" ry="14" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="260" y="180" text-anchor="middle" font-size="16" fill="#161a20">Run EM to convergence</text>
+
+  <!-- 3. Compute MDL -->
+  <rect x="120" y="262" width="280" height="56" rx="14" ry="14" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="260" y="296" text-anchor="middle" font-size="16" fill="#161a20">Compute MDL</text>
+
+  <!-- 4. Merge closest -->
+  <rect x="120" y="378" width="280" height="56" rx="14" ry="14" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="260" y="412" text-anchor="middle" font-size="16" fill="#161a20">Merge the two closest clusters</text>
+
+  <!-- final. Choose min MDL (accent bookend) -->
+  <rect x="100" y="558" width="320" height="60" rx="15" ry="15" fill="#e11d48"/>
+  <text x="260" y="594" text-anchor="middle" font-size="16.5" font-weight="600" fill="#ffffff">Choose the order with minimum MDL</text>
+
+  <!-- ============ main-flow arrows ============ -->
+  <line x1="260" y1="86"  x2="260" y2="140" stroke="#4b5563" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="260" y1="202" x2="260" y2="256" stroke="#4b5563" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="260" y1="318" x2="260" y2="372" stroke="#4b5563" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- ============ loop back: merge -> run EM (while K > 1) ============ -->
+  <path d="M400,406 L452,406 Q464,406 464,394 L464,186 Q464,174 452,174 L400,174"
+        fill="none" stroke="#e11d48" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrowRed)"/>
+  <text x="474" y="294" text-anchor="middle" font-size="13" font-weight="600" fill="#e11d48"
+        transform="rotate(90 474 294)">repeat while K &gt; 1</text>
+
+  <!-- ============ exit: reach K = 1 -> choose min MDL ============ -->
+  <line x1="260" y1="434" x2="260" y2="552" stroke="#4b5563" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="272" y="500" text-anchor="start" font-size="13" font-weight="600" fill="#4b5563">K = 1</text>
+
+  <!-- caption -->
+  <text x="260" y="646" text-anchor="middle" font-size="12.5" fill="#4b5563">Order selection by minimum description length (MDL)</text>
+</svg>

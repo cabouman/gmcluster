@@ -1,61 +1,49 @@
 ============
-Demo Details 
+Demo Details
 ============
 
-The repository contains demo python scripts named **demo/demo_1.py** and **demo/demo_2.py** that demonstrate two different uses of the software package. 
+Two demo scripts in the repository show the main uses of the package:
+``demo/demo_1.py`` and ``demo/demo_2.py``.
 
+Demo 1: unsupervised clustering
+-------------------------------
 
-Demo 1
-------
+``demo/demo_1.py`` estimates the order and parameters of a Gaussian mixture, then
+labels each point by its most-likely cluster.
 
-The demo shows EM algorithm-based cluster parameter and order estimation for a Gaussian mixture model, followed by unsupervised classification of data points from different clusters.
+Steps:
 
-**Steps**
-	• First, generate 500 observations from a Gaussian mixture model with 3 clusters.
-	• Then fit a ``GaussianMixture(num_clusters="auto")`` model to the data, which estimates the order and the cluster parameters.
-	• Then call ``classify`` on the data to label each observation by its most-likely cluster.
+1. Draw 500 points from a Gaussian mixture with 3 clusters.
+2. Fit ``GaussianMixture(num_clusters="auto")`` to the points.  The fit recovers the
+   number of clusters and their parameters.
+3. Call ``classify`` to label each point by its most-likely cluster.
 
-**Results**
-
-.. figure:: demo_1_1.png
-   :width: 100%
-   :alt: generated samples
+.. figure:: fig_demo1.svg
+   :width: 70%
+   :alt: generated samples and unsupervised clustering result
    :align: center
-   
-   Generated samples
-   
-.. figure:: demo_1_2.png
-   :width: 100%
-   :alt: unsupervised clustering results
+
+   Left: the generated samples.  Right: the clusters found by the fit.
+
+Demo 2: classification by log-likelihood
+-----------------------------------------
+
+``demo/demo_2.py`` fits one mixture per class and classifies test points by
+maximum likelihood.
+
+Steps:
+
+1. Draw data from 2 Gaussian mixtures, each with 3 clusters: a training set from
+   each mixture, plus a combined test set.
+2. Fit ``GaussianMixture(num_clusters="auto")`` to each training set, giving one
+   model per class.
+3. Call ``log_likelihood`` from each model on the test set, and label each test
+   point by the class whose model gives the higher value.
+
+.. figure:: fig_demo2.svg
+   :width: 70%
+   :alt: training samples and classification result
    :align: center
-   
-   Unsupervised classification results
-   
-   
-Demo 2
-------
 
-The demo uses the EM algorithm to estimate the orders and parameters of 2 different Gaussian mixture models and perform binary maximum-likelihood classification.
-
-**Steps**
-	• First, generate data from 2 Gaussian mixture models, each with 3 clusters. The generated data includes a training dataset from each mixture and a combined testing dataset.
-	• Then fit a ``GaussianMixture(num_clusters="auto")`` model to each training dataset.
-	• Finally, call ``log_likelihood`` from each fitted model on the testing dataset, and label each test point by the class with the higher log-likelihood.
-    
-**Results**
-
-.. figure:: demo_2_1.png
-   :width: 100%
-   :alt: training samples
-   :align: center
-   
-   Training samples
-   
-.. figure:: demo_2_2.png
-   :width: 100%
-   :alt: classification results
-   :align: center
-   
-   Classification results
-
-
+   Left: the training samples for the two classes.  Right: the test points
+   labeled by the class with the higher log-likelihood.

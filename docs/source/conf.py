@@ -12,7 +12,6 @@
 #
 import os
 import sys
-import sphinx_rtd_theme
 
 sys.path.insert(0, os.path.abspath('../..'))
 
@@ -49,7 +48,9 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.napoleon',
     'sphinxcontrib.bibtex',
-    'sphinx.ext.viewcode'
+    'sphinx.ext.viewcode',
+    'sphinx_design',
+    'sphinx_copybutton',
 ]
 
 autosummary_generate = True
@@ -100,21 +101,33 @@ napoleon_use_rtype = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-#html_theme = 'bizstyle'
-html_theme = 'sphinx_rtd_theme'
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+html_theme = 'sphinx_book_theme'
 
+# Theme options are theme-specific and customize the look and feel of a theme
+# further.  For a list of options available for each theme, see the
+# documentation.
 html_theme_options = {
-    'style_nav_header_background': '#4f8fb8ff',
-    'collapse_navigation': False,
+    'show_toc_level': 2,
+    'repository_url': 'https://github.com/cabouman/gmcluster',
+    'use_repository_button': True,     # add a "link to repository" button
+    'use_edit_page_button': True,      # add an "edit this page" button
+    'repository_branch': 'main',
+    'path_to_docs': 'docs/source',
+    'navigation_with_keys': False,
 }
 
-html_logo = 'gmcluster_logo.png'
+main_doc = 'index'
 
-# Output file base name for HTML help builder.
-htmlhelp_basename = project + 'doc'
+html_logo = 'gmcluster_logo.svg'
+
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-#html_static_path = ['_static']
-html_static_path = []
+html_static_path = ['_static']
+
+html_css_files = [
+    'gmcluster.css',
+]
+
+# Output file base name for HTML help builder.
+htmlhelp_basename = project + 'doc'

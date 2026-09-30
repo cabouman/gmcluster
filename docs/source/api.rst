@@ -1,12 +1,12 @@
 API Documentation
 =================
 
-gmcluster_ provides the ``GaussianMixture`` class, which performs EM algorithm-based estimation of the order and the parameters of a Gaussian mixture model, and supervised or unsupervised classification using the estimated parameters for a given set of observations.
-
-.. _gmcluster: gmcluster.html
+The :class:`~gmcluster.GaussianMixture` class is the full public interface: it fits
+a Gaussian mixture model, selects the number of clusters, and classifies data with
+the fitted model.  Its methods and results are listed below.
 
 .. toctree::
    :titlesonly:
    :hidden:
-   
+
    gmcluster

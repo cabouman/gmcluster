@@ -2,38 +2,90 @@
 Overview
 ========
 
-**gmcluster** is a python-based software package that automatically estimates the parameters of a Gaussian mixture model from sample data. This process is essentially similar to conventional clustering except that it allows cluster parameters to be accurately estimated even when the clusters overlap substantially. The resulting mixture model is useful for a variety of applications including texture and multispectral image segmentation.
+**gmcluster** fits a Gaussian mixture model to sample data and chooses how many
+clusters to use automatically.  It handles clusters that overlap heavily, where
+simple clustering fails.  Typical uses are texture and multispectral image
+segmentation, density estimation, and classification.
 
-The package provides one class, **GaussianMixture**. You create a model with the settings you want, then call **fit(X)** on your data. The **fit** method applies the expectation-maximization (EM) algorithm together with an agglomerative clustering strategy to estimate the number of clusters that best fit the data. The estimation is based on the Rissanen order identification criterion known as minimum description length (MDL). This is equivalent to maximum-likelihood (ML) estimation when the number of clusters is fixed, but in addition, it allows the number of clusters to be accurately estimated. Set ``num_clusters="auto"`` to select the number of clusters by MDL, or pass a positive integer to fix it. The ``whiten`` setting decorrelates the coordinates before clustering to better condition the problem.
+The package provides one class, :class:`~gmcluster.GaussianMixture`.  Create a
+model, call ``fit`` on your data, then read the estimates or classify new points::
 
-A naming note: the constructor arguments are settings you request. The values produced by **fit** are estimates, so they are stored under names that start with ``estimated_``. An estimator is a random variable; each fitted array is one realization of it.
+    from gmcluster import GaussianMixture
 
-After **fit**, the results are stored on the model:
+    model = GaussianMixture(num_clusters="auto").fit(X)   # X is (num_points, num_features)
 
-* ``estimated_num_clusters`` — the number of clusters in the fitted model.
-* ``estimated_weights`` — the cluster weights, shape ``(K,)``.
-* ``estimated_means`` — the cluster means, shape ``(K, M)``.
-* ``estimated_covariances`` — the cluster covariance matrices, shape ``(K, M, M)``.
-* ``mdl`` — the MDL value of the fitted model.
+    print(model.estimated_num_clusters)                   # number of clusters found
+    print(model.estimated_means)                          # cluster centers, (K, M)
+
+    labels = model.classify(X_new)                         # most-likely cluster per point
+    samples = model.sample(1000)                           # draw new points from the model
+
+Key ideas
+---------
+
+* **Automatic order selection.**  Set ``num_clusters="auto"`` and the fit chooses
+  the number of clusters by the minimum description length (MDL) criterion.  Pass a
+  positive integer to fix the number instead.
+* **Handles overlap.**  The fit uses the expectation-maximization (EM) algorithm,
+  which assigns each point a soft membership to every cluster, so clusters that
+  overlap are still estimated accurately.
+* **Full or diagonal covariances.**  ``covariance_type="full"`` allows tilted,
+  correlated clusters; ``"diagonal"`` restricts each cluster to axis-aligned spread
+  and uses fewer parameters.
+* **Optional whitening.**  ``whiten=True`` decorrelates and scales the coordinates
+  before clustering, which conditions the problem when the input features are on
+  very different scales.
+
+Constructor settings and results
+--------------------------------
+
+The constructor arguments are settings you request.  The values ``fit`` produces
+are estimates, so they are stored under names that begin with ``estimated_``.
+
+Constructor:
+:class:`GaussianMixture(num_clusters="auto", max_clusters=20, covariance_type="full", alpha=0.1, whiten=False, verbose=False) <gmcluster.GaussianMixture>`.
+
+After ``fit``, the model holds:
+
+* ``estimated_num_clusters`` — number of clusters in the fitted model, ``K``.
+* ``estimated_weights`` — cluster weights, shape ``(K,)``.
+* ``estimated_means`` — cluster means, shape ``(K, M)``.
+* ``estimated_covariances`` — cluster covariance matrices, shape ``(K, M, M)``.
+* ``mdl`` — MDL value of the fitted model.
 * ``mdl_path`` — the ``(K, MDL)`` pairs for every order visited during the search.
-* ``converged``, ``num_iterations`` — diagnostics from the fit.
+* ``converged``, ``num_iterations`` — fit diagnostics.
 
-The fitted model also provides several methods:
+The fitted model provides these methods:
 
-* **classify(X)** returns the most-likely cluster index for each point, shape ``(N,)``.
-* **posterior(X)** returns ``P(cluster | x)`` for each point, shape ``(N, K)``, with rows that sum to 1.
-* **log_likelihood(X)** returns the per-point log density ``log p(x)``, shape ``(N,)``. This can be used to perform tasks such as maximum-likelihood classification: fit one model per class, then label each point by the class with the higher log-likelihood.
-* **sample(num_samples, rng, with_labels)** draws samples from the fitted mixture, which simulates data from a Gaussian mixture model of any order.
-* **split_clusters()** returns a list of single-cluster models, one per component of the fitted mixture. It is kept for use alongside other segmentation packages.
+* ``classify(X)`` — most-likely cluster index for each point, shape ``(N,)``.
+* ``posterior(X)`` — ``P(cluster | x)`` for each point, shape ``(N, K)``, rows sum to 1.
+* ``log_likelihood(X)`` — per-point log density ``log p(x)``, shape ``(N,)``.  Fit one
+  model per class and label each point by the class with the higher value to do
+  maximum-likelihood classification.
+* ``sample(num_samples, rng, with_labels)`` — draw points from the fitted mixture.
+* ``split_clusters()`` — return one single-cluster model per component, for use with
+  other segmentation packages.
 
+How order selection works
+--------------------------
 
-**How does the fit method work?**
+With ``num_clusters="auto"``, the fit searches over the number of clusters:
 
-The algorithm starts by initializing a set of cluster parameters for a chosen number of clusters. The cluster means are generated by selecting the appropriate number of samples from the training data, and the cluster covariances are all set equal to the covariance of the complete data set. After this initialization, the algorithm performs multiple iterations of EM clustering until converged cluster parameters are estimated for the given number of clusters. For each iteration of EM clustering, the algorithm performs an E-step and an M-step. Then the algorithm enters a loop in which clusters are combined (or eliminated when empty) to reduce the order. For every reduced order, EM clustering is run again to get the cluster parameters. Based on the Rissanen criterion, the algorithm finally makes the decision on the optimal order and its associated cluster parameters (unless the optimal order is fixed by the user). The following figure illustrates the basic operations performed by **fit**.
+1. Start at ``max_clusters``.  Set the means to points drawn from the data and set
+   every covariance to the covariance of the whole data set.
+2. Run EM to convergence, then compute the MDL value for that number of clusters.
+3. Merge the two closest clusters, reducing the count by one.
+4. Repeat steps 2 and 3 down to one cluster.
+5. Keep the number of clusters, and the parameters, with the smallest MDL value.
 
-.. figure:: gm_flowchart.png
-   :width: 100%
-   :alt: fit method flowchart
+MDL balances fit against model size: adding clusters always fits the data better,
+so MDL adds a penalty that grows with the number of parameters.  The minimum is the
+order that describes the data in the fewest bits.  See :doc:`theory` for the
+derivation.
+
+.. figure:: fig_mdl_flow.svg
+   :width: 45%
+   :alt: flowchart of the fit method
    :align: center
 
-   Operation flowchart for the fit method
+   Order selection in the fit method.

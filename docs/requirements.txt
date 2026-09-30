@@ -1,4 +1,6 @@
 sphinx
-sphinx-rtd-theme
+sphinx-book-theme
+sphinx-design
+sphinx-copybutton
 sphinxcontrib-bibtex
 numpy

@@ -20,7 +20,7 @@ dependencies = [
 
 [project.optional-dependencies]
 test = ["pytest"]
-docs = ["sphinx", "sphinx_rtd_theme", "sphinxcontrib-bibtex"]
+docs = ["sphinx", "sphinx-book-theme", "sphinx-design", "sphinx-copybutton", "sphinxcontrib-bibtex"]
 
 [project.urls]
 Homepage = "https://github.com/cabouman/gmcluster"

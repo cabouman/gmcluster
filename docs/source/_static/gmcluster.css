@@ -1,0 +1,52 @@
+/* gmcluster custom styles.
+   Brand accent is #e11d48, the "Cluster" red from the logo.
+   Kept small and tasteful; sphinx_book_theme provides the base look. */
+
+:root {
+  --gmc-accent: #e11d48;        /* logo "Cluster" red */
+  --gmc-accent-soft: #fde4ea;   /* pale tint of the accent */
+  --block-bg-opacity: 0.85;
+}
+
+/* Make the theme's primary color the brand accent. */
+html {
+  --pst-color-primary: var(--gmc-accent);
+  --pst-color-link: var(--gmc-accent);
+  --pst-color-link-hover: #be123c;
+}
+
+/* Accent bar under the logo in the sidebar. */
+.bd-sidebar-primary .navbar-brand img {
+  border-bottom: 3px solid var(--gmc-accent);
+  padding-bottom: 0.5rem;
+}
+
+/* Landing-page nav cards: give each a subtle accent border and lift on hover.
+   sphinx_book_theme is built on pydata-sphinx-theme, so the card body is painted
+   opaque; color the body and out-specify the theme rule with the .bd-content prefix. */
+.bd-content .sd-card {
+  border: 1px solid rgba(225, 29, 72, 0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bd-content .sd-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(225, 29, 72, 0.18);
+}
+
+/* Navigation cards (Overview / Installation / API / Demos) carry a tinted body. */
+.bd-content .sd-card.gmc-nav .sd-card-body {
+  background-color: rgba(253, 228, 234, var(--block-bg-opacity));
+}
+
+/* Material icons in the nav cards take the brand accent. */
+.bd-content .sd-card.gmc-nav .sd-card-title .material-regular,
+.bd-content .sd-card.gmc-nav .material-regular {
+  color: var(--gmc-accent);
+}
+
+/* Section headers get a thin accent underline. */
+.bd-article h1 {
+  border-bottom: 2px solid var(--gmc-accent);
+  padding-bottom: 0.3rem;
+}
