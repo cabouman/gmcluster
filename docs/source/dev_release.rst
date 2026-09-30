@@ -11,33 +11,6 @@ is ever stored or typed.
 The examples below release version ``0.3.0``.  Replace ``0.3.0`` with the
 version you are releasing.
 
-One-time setup
-==============
-
-This setup is done once per package, when it is first published, and never
-again for that package.  For gmcluster the GitHub CLI is already logged in and
-the two environments already exist, so only the pending publishers remain.
-
-- **GitHub CLI login** (already done on this host): ``gh auth status`` shows you
-  logged in.  Run ``gh auth login`` only if it does not.
-
-- **GitHub environments** (already created for gmcluster): in the repository
-  settings under **Environments** there is a ``pypi`` environment with you set
-  as a required reviewer, so the upload waits for your approval, and a
-  ``testpypi`` environment with no reviewer.
-
-- **Pending publishers** (already added for gmcluster; needed once per new
-  package): on **PyPI** and on **TestPyPI**, a pending publisher for the project
-  with these values:
-
-  - Project name: ``gmcluster``
-  - Owner: ``cabouman``
-  - Repository: ``gmcluster``
-  - Workflow: ``release.yml``
-  - Environment: ``pypi`` on PyPI, ``testpypi`` on TestPyPI
-
-Trusted Publishing means no API tokens are stored anywhere.
-
 Dry run on TestPyPI (optional, recommended the first time)
 ==========================================================
 
