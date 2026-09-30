@@ -1,0 +1,65 @@
+name: Release
+# Publishing a GitHub release uploads the package: a pre-release goes to
+# TestPyPI, a full release goes to PyPI after approval of the `pypi`
+# environment.  See docs for the step-by-step release procedure.
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check that the tag matches the package version
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          VERSION=$(python -c "import re; print(re.search(r'__version__\s*=\s*[\"\x27]([^\"\x27]+)', open('gmcluster/__init__.py').read()).group(1))")
+          if [ "$TAG" != "v$VERSION" ]; then
+            echo "tag $TAG does not match __version__ $VERSION (expected v$VERSION)"
+            exit 1
+          fi
+      - name: Build the sdist and wheel
+        run: |
+          pip install build
+          python -m build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish-testpypi:
+    # Pre-releases (tag vX.Y.ZrcN) go to TestPyPI.
+    if: github.event.release.prerelease
+    needs: build
+    runs-on: ubuntu-latest
+    environment: testpypi
+    permissions:
+      id-token: write    # Trusted Publishing; no token is stored.
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+  publish-pypi:
+    # Full releases (tag vX.Y.Z on main) go to PyPI after approval.
+    if: "!github.event.release.prerelease"
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write    # Trusted Publishing; no token is stored.
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
