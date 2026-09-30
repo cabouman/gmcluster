@@ -34,8 +34,7 @@ PyPI version number can never be reused, so it is worth doing once.
 Release to PyPI
 ===============
 
-Do these four steps in order.  Steps 1 and 3 are commands on your machine;
-steps 2 and 4 are clicks on GitHub.
+Do these steps in order.
 
 1. Open the release pull request::
 
@@ -56,11 +55,11 @@ steps 2 and 4 are clicks on GitHub.
    ``v0.3.0`` on ``main``.  GitHub Actions builds the package and then pauses
    for your approval.
 
-4. Approve the upload on GitHub: open the **Actions** tab, click the running
+   Approve the upload on GitHub: open the **Actions** tab, click the running
    **Release** workflow, click **Review deployments**, check the **pypi** box,
    and click **Approve and deploy**.
 
-5. Confirm it is live::
+4. Confirm it is live::
 
        pip install gmcluster
 
