@@ -8,21 +8,27 @@ GMCluster is published to PyPI by the release workflow in
 logged in, and a one-time setup of Trusted Publishing.  The examples release
 version ``0.X.Y``.
 
-One-time setup
-==============
+This setup is done once per package, when it is first published, and never
+again for that package.  For gmcluster the GitHub CLI is already logged in and
+the two environments already exist, so only the pending publishers remain.
 
-- Log in to the GitHub CLI: ``gh auth status`` (run ``gh auth login`` if needed).
-- Add a *pending publisher* on **PyPI** and on **TestPyPI** for the project:
+- **GitHub CLI login** (already done on this host): ``gh auth status`` shows you
+  logged in.  Run ``gh auth login`` only if it does not.
+
+- **GitHub environments** (already created for gmcluster): in the repository
+  settings under **Environments** there is a ``pypi`` environment with you set
+  as a required reviewer, so the upload waits for your approval, and a
+  ``testpypi`` environment with no reviewer.
+
+- **Pending publishers** (the remaining step; do it once on each site): log in
+  to **PyPI** and to **TestPyPI** and add a pending publisher for the project
+  with these values:
 
   - Project name: ``gmcluster``
   - Owner: ``cabouman``
   - Repository: ``gmcluster``
   - Workflow: ``release.yml``
   - Environment: ``pypi`` on PyPI, ``testpypi`` on TestPyPI
-
-- In the GitHub repository settings, create the ``pypi`` and ``testpypi``
-  environments.  Add yourself as a required reviewer on ``pypi`` so the upload
-  waits for your approval.
 
 Trusted Publishing means no API tokens are stored anywhere.
 
