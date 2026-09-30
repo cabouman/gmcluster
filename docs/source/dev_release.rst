@@ -2,11 +2,17 @@
 Releasing a version
 ===================
 
-GMCluster is published to PyPI by the release workflow in
-``.github/workflows/release.yml``, driven one stage at a time by
-``dev_scripts/release.sh``.  This is for maintainers.  It needs the ``gh`` CLI
-logged in, and a one-time setup of Trusted Publishing.  The examples release
-version ``0.X.Y``.
+GMCluster is published to PyPI by the GitHub Actions workflow in
+``.github/workflows/release.yml``.  You drive it from your machine with
+``dev_scripts/release.sh``, which stamps the version, tags the release, and lets
+GitHub Actions do the upload.  Uploads use Trusted Publishing, so no API token
+is ever stored or typed.
+
+The examples below release version ``0.3.0``.  Replace ``0.3.0`` with the
+version you are releasing.
+
+One-time setup
+==============
 
 This setup is done once per package, when it is first published, and never
 again for that package.  For gmcluster the GitHub CLI is already logged in and
@@ -20,8 +26,8 @@ the two environments already exist, so only the pending publishers remain.
   as a required reviewer, so the upload waits for your approval, and a
   ``testpypi`` environment with no reviewer.
 
-- **Pending publishers** (the remaining step; do it once on each site): log in
-  to **PyPI** and to **TestPyPI** and add a pending publisher for the project
+- **Pending publishers** (already added for gmcluster; needed once per new
+  package): on **PyPI** and on **TestPyPI**, a pending publisher for the project
   with these values:
 
   - Project name: ``gmcluster``
@@ -32,49 +38,56 @@ the two environments already exist, so only the pending publishers remain.
 
 Trusted Publishing means no API tokens are stored anywhere.
 
-Dry run on TestPyPI (optional)
-==============================
+Dry run on TestPyPI (optional, recommended the first time)
+==========================================================
+
+This proves the whole pipeline on a throwaway upload before the real one.  A
+PyPI version number can never be reused, so it is worth doing once.
 
 1. Publish a release candidate::
 
-       dev_scripts/release.sh 0.X.Yrc1
+       dev_scripts/release.sh 0.3.0rc1
 
-   This sets ``__version__`` to ``0.X.Yrc1``, stamps ``CITATION.cff``, commits
-   and pushes ``prerelease``, and creates a GitHub pre-release tagged
-   ``v0.X.Yrc1``.  CI builds the package and uploads it to TestPyPI; no approval
-   is needed.
+   This stamps the version, pushes ``prerelease``, and creates a GitHub
+   pre-release tagged ``v0.3.0rc1``.  GitHub Actions builds the package and
+   uploads it to TestPyPI.  No approval is needed.
 
 2. Check the upload::
 
        pip install -i https://test.pypi.org/simple/ gmcluster
 
-   If something is wrong, fix it and repeat with ``0.X.Yrc2``.
+   If something is wrong, fix it and repeat with ``0.3.0rc2``.
 
 Release to PyPI
 ===============
 
+Do these four steps in order.  Steps 1 and 3 are commands on your machine;
+steps 2 and 4 are clicks on GitHub.
+
 1. Open the release pull request::
 
-       dev_scripts/release.sh 0.X.Y
+       dev_scripts/release.sh 0.3.0
 
-   This sets ``__version__`` to ``0.X.Y``, stamps ``CITATION.cff``, commits and
-   pushes ``prerelease``, and opens the pull request from ``prerelease`` to
-   ``main``.  Nothing is uploaded.  When the checks pass on GitHub, merge the
-   pull request into ``main``.
+   This stamps the version, pushes ``prerelease``, and opens the pull request
+   from ``prerelease`` to ``main``.  Nothing is uploaded yet.
 
-2. Publish the release::
+2. On GitHub, wait for the checks to pass, then **merge the pull request** into
+   ``main``.
 
-       dev_scripts/release.sh 0.X.Y --publish
+3. Publish the release::
 
-   This checks that ``main`` carries ``__version__ = '0.X.Y'`` (it stops if the
-   pull request is not merged yet), then creates a GitHub release tagged
-   ``v0.X.Y`` on ``main``.  CI builds the package, then pauses for your approval.
+       dev_scripts/release.sh 0.3.0 --publish
 
-   Approve the deployment: on GitHub, open the **Actions** tab, click the
-   running **Release** workflow, click **Review deployments**, check the
-   **pypi** box, and click **Approve and deploy**.
+   This confirms that ``main`` carries ``__version__ = '0.3.0'`` (it stops if
+   the pull request is not merged yet), then creates the GitHub release tagged
+   ``v0.3.0`` on ``main``.  GitHub Actions builds the package and then pauses
+   for your approval.
 
-3. Check the upload::
+4. Approve the upload on GitHub: open the **Actions** tab, click the running
+   **Release** workflow, click **Review deployments**, check the **pypi** box,
+   and click **Approve and deploy**.
+
+5. Confirm it is live::
 
        pip install gmcluster
 
