@@ -1,61 +1,30 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import gmcluster
+from gmcluster import GaussianMixture
 
 """
-This file demonstrates a demo of the EM algorithm to estimate the order and parameters of a Gaussian Mixture model 
-and perform unsupervised classification of clusters within the mixture using "gmcluster" library.
+Demo of GaussianMixture: estimate the order and parameters of a Gaussian
+mixture and classify the points by their most-likely cluster.
 """
 
+# Ground-truth mixture used to generate the demo data.
+N = 500  # number of samples
+pb = np.array([0.4, 0.4, 0.2])  # cluster probabilities
+R = np.array([
+    [[1.0, 0.1], [0.1, 1.0]],
+    [[1.0, -0.1], [-0.1, 1.0]],
+    [[1.0, 0.2], [0.2, 0.5]],
+])  # cluster covariance matrices
+mu = np.array([[2.0, 2.0], [-2.0, -2.0], [5.5, 2.0]])  # cluster means
 
-class MixtureObj:
-    """Class to store the parameters for mixture object."""
-
-    def __init__(self):
-        """Function to initialize the parameters of the class MixtureObj."""
-        self.K = None
-        self.M = None
-        self.cluster = None
-
-
-class ClusterObj:
-    """Class to store the parameters for cluster object."""
-
-    def __init__(self):
-        """Function to initialize the parameters of the class ClusterObj."""
-        self.pb = None
-        self.mu = None
-        self.R = None
-
-
-# Data parameters
-N = 500  # number of observations/sample
-pb = [0.4, 0.4, 0.2]  # cluster probabilities
-R_0 = [[1, 0.1], [0.1, 1]]
-R_1 = [[1, -0.1], [-0.1, 1]]
-R_2 = [[1, 0.2], [0.2, 0.5]]
-R = [R_0, R_1, R_2]  # cluster covariance matrices
-mu_0 = [[2], [2]]
-mu_1 = [[-2], [-2]]
-mu_2 = [[5.5], [2]]
-mu = [mu_0, mu_1, mu_2]  # cluster means
-
-# Create the mixture with GM parameters
-cluster = [None] * 3
-for i in range(3):
-    cluster_obj = ClusterObj()
-    cluster_obj.pb = pb[i]
-    cluster_obj.R = R[i]
-    cluster_obj.mu = mu[i]
-    cluster[i] = cluster_obj
-
-mixture = MixtureObj()
-mixture.K = 3
-mixture.M = 2
-mixture.cluster = cluster
-
-# Generate demo data
-pixels = gmcluster.generate_gm_samples(mixture, N)
+# Generate demo data by drawing a component per sample, then a point from it.
+rng = np.random.default_rng(0)
+labels = rng.choice(len(pb), size=N, p=pb)
+pixels = np.empty((N, 2))
+for k in range(len(pb)):
+    idx = np.nonzero(labels == k)[0]
+    L = np.linalg.cholesky(R[k])
+    pixels[idx] = mu[k] + rng.standard_normal((idx.size, 2)) @ L.T
 
 # Plot the generated samples
 plt.plot(pixels[:, 0], pixels[:, 1], 'o')
@@ -64,32 +33,24 @@ plt.xlabel('first component')
 plt.ylabel('second component')
 plt.show()
 
-# Estimate optimal order and clustering data
-omtr = gmcluster.estimate_gm_params(pixels)
+# Estimate the order and cluster parameters.
+gm = GaussianMixture(num_clusters="auto").fit(pixels)
 
-print('\noptimal order: ', omtr.K)
-for i in range(omtr.K):
-    cluster_obj = omtr.cluster[i]
+print('\nestimated order: ', gm.estimated_num_clusters)
+for i in range(gm.estimated_num_clusters):
     print('\nCluster: ', i)
-    print('pi: ', cluster_obj.pb)
-    print('mean: \n', cluster_obj.mu)
-    print('covar: \n', cluster_obj.R, '\n')
+    print('pi: ', gm.estimated_weights[i])
+    print('mean: \n', gm.estimated_means[i])
+    print('covar: \n', gm.estimated_covariances[i], '\n')
 
-# Split classes
-mtrs = gmcluster.split_classes(omtr)
-likelihood = np.zeros((np.shape(pixels)[0], len(mtrs)))
-for k in range(len(mtrs)):
-    likelihood[:, k] = gmcluster.compute_class_likelihood(mtrs[k], pixels)[:, 0]
-
-# Perform classification
-class_list = np.argmax(likelihood, axis=1)
-for n in range(np.shape(pixels)[0]):
-    print(pixels[n, :], ' Log-likelihood: ', likelihood[n, :], ' class: ', class_list[n])
+# Classify each point by its most-likely cluster.
+class_list = gm.classify(pixels)
 
 # Plot the classification results
-plt.plot(pixels[np.argwhere(class_list == 0), 0], pixels[np.argwhere(class_list == 0), 1], 'o', label='class 0')
-plt.plot(pixels[np.argwhere(class_list == 1), 0], pixels[np.argwhere(class_list == 1), 1], 'x', label='class 1')
-plt.plot(pixels[np.argwhere(class_list == 2), 0], pixels[np.argwhere(class_list == 2), 1], '*', label='class 2')
+markers = ['o', 'x', '*', 's', 'd', 'v', '^', '<', '>', 'p']
+for k in range(gm.estimated_num_clusters):
+    pts = pixels[class_list == k]
+    plt.plot(pts[:, 0], pts[:, 1], markers[k % len(markers)], label='class %d' % k)
 plt.title('Gaussian mixture classification')
 plt.xlabel('first component')
 plt.ylabel('second component')

@@ -1,7 +1,7 @@
-# Smoke test: a tiny fit returns a well-formed mixture.
+# Smoke test: a tiny fit returns a well-formed model.
 
 import numpy as np
-import gmcluster
+from gmcluster import GaussianMixture
 
 
 def test_smoke_tiny_fit():
@@ -10,8 +10,8 @@ def test_smoke_tiny_fit():
     b = np.random.randn(200, 2) + np.array([-5.0, -5.0])
     data = np.vstack([a, b])
 
-    opt = gmcluster.estimate_gm_params(data, init_K=5, final_K=0, verbose=False)
+    gm = GaussianMixture(num_clusters="auto", max_clusters=5, verbose=False).fit(data)
 
-    assert isinstance(opt.K, int)
-    assert opt.K >= 1
-    assert len(opt.cluster) == opt.K
+    assert isinstance(gm.estimated_num_clusters, int)
+    assert gm.estimated_num_clusters >= 1
+    assert gm.estimated_weights.shape == (gm.estimated_num_clusters,)
