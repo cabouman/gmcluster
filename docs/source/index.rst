@@ -59,7 +59,7 @@ data, and picks the number of clusters for you.
       :link: overview
       :link-type: doc
 
-      What gmcluster does and how the fit method works.
+      What gmcluster does.
 
    .. grid-item-card:: :material-regular:`rocket_launch;2em` Installation
       :class-card: gmc-nav
