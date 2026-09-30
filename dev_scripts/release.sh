@@ -46,7 +46,11 @@ grep -q "__version__ = '$VERSION'" $INIT
 sed -i '' "s/^version:.*/version: $VERSION/" CITATION.cff
 sed -i '' "s/^date-released:.*/date-released: $(date +%F)/" CITATION.cff
 git add $INIT CITATION.cff
-git commit -q -m "Set version to $VERSION"
+if git diff --cached --quiet; then
+  echo "version is already $VERSION; nothing to commit"
+else
+  git commit -q -m "Set version to $VERSION"
+fi
 git push -q origin prerelease
 
 if [[ "$STAGE" == "rc" ]]; then
