@@ -109,4 +109,5 @@ data, and picks the number of clusters for you.
    :maxdepth: 4
    :caption: Developer Guide
 
+   dev_release
    docs
