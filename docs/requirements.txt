@@ -1,6 +1,4 @@
 sphinx
 sphinx-rtd-theme
 sphinxcontrib-bibtex
-ruamel.yaml
-psutil
 numpy

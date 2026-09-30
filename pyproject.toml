@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gmcluster"
+description = "EM Gaussian-mixture clustering with automatic MDL order selection"
+readme = "README.rst"
+license = { text = "BSD-3-Clause" }
+requires-python = ">=3.11"
+dynamic = ["version"]
+authors = [
+    { name = "Charles A. Bouman" },
+    { name = "Mohammad Samin Nur Chowdhury" },
+]
+dependencies = [
+    "numpy",
+    "matplotlib",
+]
+
+[project.optional-dependencies]
+test = ["pytest"]
+docs = ["sphinx", "sphinx_rtd_theme", "sphinxcontrib-bibtex"]
+
+[project.urls]
+Homepage = "https://github.com/cabouman/gmcluster"
+Documentation = "https://gmcluster.readthedocs.io"
+Repository = "https://github.com/cabouman/gmcluster"
+
+[tool.setuptools]
+packages = ["gmcluster"]
+
+[tool.setuptools.dynamic]
+version = { attr = "gmcluster.__version__" }

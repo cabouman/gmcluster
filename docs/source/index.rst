@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-.. image:: gmcluster_logo.png
+.. image:: gmcluster_logo.svg
    :width: 320px
    :alt: gmcluster logo
    :align: center

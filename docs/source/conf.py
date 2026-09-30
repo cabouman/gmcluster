@@ -33,8 +33,8 @@ project = 'gmcluster'
 copyright = '2022, Charles A Bouman'
 author = 'GMCluster Development Team'
 
-# The full version, including alpha/beta/rc tags
-release = '0.0.1'
+# The full version, single-sourced from the package
+from gmcluster import __version__ as release
 
 
 # -- General configuration ---------------------------------------------------

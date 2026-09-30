@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "GMCluster: An unsupervised algorithm for modeling Gaussian mixtures"
+type: software
+authors:
+  - family-names: Bouman
+    given-names: Charles A.
+  - family-names: Chowdhury
+    given-names: Mohammad Samin Nur
+version: 0.3.0
+date-released: 2026-09-30
+url: "https://gmcluster.readthedocs.io"
+repository-code: "https://github.com/cabouman/gmcluster"
+license: BSD-3-Clause
+preferred-citation:
+  type: software
+  title: "GMCluster: An unsupervised algorithm for modeling Gaussian mixtures"
+  authors:
+    - family-names: Bouman
+      given-names: Charles A.
+    - family-names: Chowdhury
+      given-names: Mohammad Samin Nur
+  year: 2022
+  url: "https://github.com/cabouman/gmcluster"
