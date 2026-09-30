@@ -177,14 +177,14 @@ def compute_class_likelihood(mixture, data):
 
     for k in range(mixture.K):
         cluster_obj = mixture.cluster[k]
-        Y1 = data - np.ones((N, 1)) @ cluster_obj.mu.T
+        Y1 = data - cluster_obj.mu.T
         Y2 = -0.5 * Y1 @ cluster_obj.invR
         pnk[:, k] = np.sum(Y1 * Y2, axis=1) + mixture.cluster[k].const
         pb_mat[0, k] = cluster_obj.pb
 
     llmax = np.expand_dims(np.max(pnk, axis=1), axis=1)
-    pnk = np.exp(pnk - llmax @ np.ones((1, mixture.K)))
-    pnk = pnk * (np.ones((N, 1)) @ pb_mat)
+    pnk = np.exp(pnk - llmax)
+    pnk = pnk * pb_mat
     ss = np.expand_dims(np.sum(pnk, axis=1), axis=1)
     ll = np.log(ss) + llmax
 
@@ -376,17 +376,17 @@ def E_step(mixture, data):
 
     for k in range(mixture.K):
         cluster_obj = mixture.cluster[k]
-        Y1 = data - np.ones((N, 1)) @ cluster_obj.mu.T
+        Y1 = data - cluster_obj.mu.T
         Y2 = -0.5 * Y1 @ cluster_obj.invR
         pnk[:, k] = np.sum(Y1 * Y2, axis=1) + cluster_obj.const
         pb_mat[0, k] = cluster_obj.pb
 
     llmax = np.expand_dims(np.max(pnk, axis=1), axis=1)
-    pnk = np.exp(pnk - llmax @ np.ones((1, mixture.K)))
-    pnk = pnk * (np.ones((N, 1)) @ pb_mat)
+    pnk = np.exp(pnk - llmax)
+    pnk = pnk * pb_mat
     ss = np.expand_dims(np.sum(pnk, axis=1), axis=1)
     likelihood = np.sum(np.log(ss) + llmax)
-    pnk = pnk / (ss @ np.ones((1, mixture.K)))
+    pnk = pnk / ss
     mixture.pnk = pnk
 
     return mixture, likelihood
@@ -417,13 +417,10 @@ def M_step(mixture, data, est_kind, alpha):
         cluster_obj.pb = cluster_obj.N
         cluster_obj.mu = np.expand_dims((data.T @ mixture.pnk[:, k]) / cluster_obj.N, axis=1)
 
-        R = cluster_obj.R
-        for r in range(mixture.M):
-            for s in range(r, mixture.M):
-                R[r, s] = ((data[:, r] - cluster_obj.mu[r]).T @ ((data[:, s] - cluster_obj.mu[s]) * mixture.pnk[:, k])) \
-                          / cluster_obj.N
-                if r != s:
-                    R[s, r] = R[r, s]
+        # Weighted covariance about the cluster mean
+        w = mixture.pnk[:, k]
+        Xc = data - cluster_obj.mu.T
+        R = (Xc.T * w) @ Xc / cluster_obj.N
 
         # Regularize the covariance matrix and impose constrains
         R = ridge_regression(R, est_kind, alpha, mixture.D_reg)
