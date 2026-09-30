@@ -1,7 +1,7 @@
 API Documentation
 =================
 
-gmcluster_ includes functions to perform EM algorithm-based estimation of the order, and the parameters of a Gaussian mixture model and supervised/unsupervised classification using the estimated parameters for a given set of observations.
+gmcluster_ provides the ``GaussianMixture`` class, which performs EM algorithm-based estimation of the order and the parameters of a Gaussian mixture model, and supervised or unsupervised classification using the estimated parameters for a given set of observations.
 
 .. _gmcluster: gmcluster.html
 

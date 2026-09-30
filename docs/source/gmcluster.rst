@@ -1,17 +1,23 @@
 gmcluster
 -----------
-.. automodule:: gmcluster
-   :members: estimate_gm_params, split_classes, compute_class_likelihood, generate_gm_samples
+.. currentmodule:: gmcluster
+
+.. rubric:: **Class:**
+
+.. autosummary::
+   GaussianMixture
+
+.. rubric:: **Methods:**
+
+.. autosummary::
+   GaussianMixture.fit
+   GaussianMixture.classify
+   GaussianMixture.posterior
+   GaussianMixture.log_likelihood
+   GaussianMixture.sample
+   GaussianMixture.split_clusters
+
+.. autoclass:: gmcluster.GaussianMixture
+   :members:
    :member-order: bysource
-   :undoc-members:
    :show-inheritance:
-
-   .. rubric:: **Functions:**
-
-   .. autosummary::
-      estimate_gm_params
-      split_classes
-      compute_class_likelihood
-      generate_gm_samples
-        
-        

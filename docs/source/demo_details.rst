@@ -8,12 +8,12 @@ The repository contains demo python scripts named **demo/demo_1.py** and **demo/
 Demo 1
 ------
 
-The demo shows an implementation of EM algorithm-based cluster parameter and order estimation for Gaussian mixture model followed by unsupervised classification of datapoints from different clusters.
+The demo shows EM algorithm-based cluster parameter and order estimation for a Gaussian mixture model, followed by unsupervised classification of data points from different clusters.
 
 **Steps**
 	• First, generate 500 observations from a Gaussian mixture model with 3 clusters.
-	• Then implement “estimate_gm_params” function on the data for the estimation.
-	• Then use “split_classes” followed by “compute_class_likelihood” functions to classify observations from different clusters.
+	• Then fit a ``GaussianMixture(num_clusters="auto")`` model to the data, which estimates the order and the cluster parameters.
+	• Then call ``classify`` on the data to label each observation by its most-likely cluster.
 
 **Results**
 
@@ -35,12 +35,12 @@ The demo shows an implementation of EM algorithm-based cluster parameter and ord
 Demo 2
 ------
 
-The demo shows an implementation of the EM algorithm to estimate the orders and parameters of 2 different Gaussian Mixture models and perform binary maximum likelihood classification.
+The demo uses the EM algorithm to estimate the orders and parameters of 2 different Gaussian mixture models and perform binary maximum-likelihood classification.
 
 **Steps**
-	• First, generate data from 2 Gaussian mixture model each with 3 clusters. The generated data includes training dataset from both mixtures and a combined testing dataset.
-	• Then implement “estimate_gm_params” function on both the training datasets for the estimation.
-	• Finally, use “compute_class_likelihood” function to get the likelihood value to classify testing dataset.
+	• First, generate data from 2 Gaussian mixture models, each with 3 clusters. The generated data includes a training dataset from each mixture and a combined testing dataset.
+	• Then fit a ``GaussianMixture(num_clusters="auto")`` model to each training dataset.
+	• Finally, call ``log_likelihood`` from each fitted model on the testing dataset, and label each test point by the class with the higher log-likelihood.
     
 **Results**
 
