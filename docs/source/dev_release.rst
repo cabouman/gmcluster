@@ -34,32 +34,20 @@ PyPI version number can never be reused, so it is worth doing once.
 Release to PyPI
 ===============
 
-Do these steps in order.
-
-1. Open the release pull request::
+1. Publish the release::
 
        dev_scripts/release.sh 0.3.0
 
-   This stamps the version, pushes ``prerelease``, and opens the pull request
-   from ``prerelease`` to ``main``.  Nothing is uploaded yet.
+   This stamps the version on ``prerelease``, fast-forwards ``main`` to the same
+   commit, and creates the GitHub release tagged ``v0.3.0``.  Afterwards
+   ``main``, ``prerelease``, and the ``v0.3.0`` tag are all on the same commit.
+   GitHub Actions builds the package and then pauses for your approval.
 
-2. On GitHub, wait for the checks to pass, then **merge the pull request** into
-   ``main``.
-
-3. Publish the release::
-
-       dev_scripts/release.sh 0.3.0 --publish
-
-   This confirms that ``main`` carries ``__version__ = '0.3.0'`` (it stops if
-   the pull request is not merged yet), then creates the GitHub release tagged
-   ``v0.3.0`` on ``main``.  GitHub Actions builds the package and then pauses
-   for your approval.
-
-   Approve the upload on GitHub: open the **Actions** tab, click the running
+2. Approve the upload on GitHub: open the **Actions** tab, click the running
    **Release** workflow, click **Review deployments**, check the **pypi** box,
    and click **Approve and deploy**.
 
-4. Confirm it is live::
+3. Confirm it is live::
 
        pip install gmcluster
 
@@ -68,6 +56,7 @@ Notes
 
 - The tag is always ``v`` followed by the version; the workflow fails the build
   if the tag does not match ``__version__``.
-- ``main`` changes only through the pull request above, never a direct push.
+- At a release, ``main`` only fast-forwards to ``prerelease``, so ``main``,
+  ``prerelease``, and the release tag are always on the same commit afterwards.
 - The version is single-sourced from ``gmcluster/__init__.py``; ``pyproject.toml``
   and the docs read it from there, so bump it in that one place.

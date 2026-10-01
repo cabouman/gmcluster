@@ -43,8 +43,10 @@ fi
 
 # Final release: fast-forward main to prerelease (no merge commit), then tag.
 git push -q origin prerelease:main
+git branch -f main prerelease        # local main to the same commit
 gh release create "v$VERSION" --target main --title "GMCluster v$VERSION" \
   --generate-notes
-echo "Release v$VERSION created.  main and prerelease are now on the same commit."
+echo "Release v$VERSION created.  local and remote main, prerelease, and the"
+echo "v$VERSION tag are all on the same commit."
 echo "Approve the pypi environment (Actions -> the Release run -> Review"
 echo "deployments), then check with:  pip install gmcluster"
