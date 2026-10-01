@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from gmcluster import GaussianMixture
+from gmcluster import GMModel
 
 
 def make_data(seed=0, n_per=300):
@@ -14,13 +14,13 @@ def make_data(seed=0, n_per=300):
 
 def test_auto_selects_three():
     data = make_data(seed=0)
-    gm = GaussianMixture(num_clusters="auto", max_clusters=6).fit(data)
-    assert gm.estimated_num_clusters == 3
+    gm = GMModel.estimate(data, num_clusters="auto", max_clusters=6)
+    assert gm.num_components == 3
 
 
 def test_fixed_order_returns_two():
     data = make_data(seed=0)
-    gm = GaussianMixture(num_clusters=2).fit(data)
-    assert gm.estimated_num_clusters == 2
-    assert gm.estimated_means.shape[0] == 2
-    assert gm.estimated_weights.shape[0] == 2
+    gm = GMModel.estimate(data, num_clusters=2)
+    assert gm.num_components == 2
+    assert gm.means.shape[0] == 2
+    assert gm.weights.shape[0] == 2

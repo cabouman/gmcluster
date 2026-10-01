@@ -7,28 +7,28 @@ clusters to use automatically.  It handles clusters that overlap heavily, where
 simple clustering fails.  Typical uses are texture and multispectral image
 segmentation, density estimation, and classification.
 
-The package provides one class, :class:`~gmcluster.GaussianMixture`.  Create a
-model, call ``fit`` on your data, then read the estimates or classify new points::
+The package provides one class, :class:`~gmcluster.GMModel`.  Estimate a model from
+your data, then read its parameters or classify new points::
 
-    from gmcluster import GaussianMixture
+    from gmcluster import GMModel
 
-    model = GaussianMixture(num_clusters="auto").fit(X)   # X is (num_points, num_features)
+    model = GMModel.estimate(X, num_clusters="auto")   # X is (num_points, num_features)
 
-    print(model.estimated_num_clusters)                   # number of clusters found
-    print(model.estimated_means)                          # cluster centers, (K, M)
+    print(model.num_components)                        # number of clusters found
+    print(model.means)                                 # cluster centers, (K, M)
 
-    labels = model.classify(X_new)                         # most-likely cluster per point
-    samples = model.sample(1000)                           # draw new points from the model
+    labels = model.classify(X_new)                     # most-likely cluster per point
+    samples = model.sample(1000)                       # draw new points from the model
 
 Key ideas
 ---------
 
-* **Automatic order selection.**  Set ``num_clusters="auto"`` and the fit chooses
-  the number of clusters by the minimum description length (MDL) criterion.  Pass a
-  positive integer to fix the number instead.
-* **Handles overlap.**  The fit uses the expectation-maximization (EM) algorithm,
-  which assigns each point a soft membership to every cluster, so clusters that
-  overlap are still estimated accurately.
+* **Automatic order selection.**  Set ``num_clusters="auto"`` and the estimation
+  chooses the number of clusters by the minimum description length (MDL) criterion.
+  Pass a positive integer to fix the number instead.
+* **Handles overlap.**  The estimation uses the expectation-maximization (EM)
+  algorithm, which assigns each point a soft membership to every cluster, so
+  clusters that overlap are still estimated accurately.
 * **Full or diagonal covariances.**  ``covariance_type="full"`` allows tilted,
   correlated clusters; ``"diagonal"`` restricts each cluster to axis-aligned spread
   and uses fewer parameters.
@@ -36,40 +36,46 @@ Key ideas
   before clustering, which conditions the problem when the input features are on
   very different scales.
 
-Constructor settings and results
---------------------------------
+Estimating a model and reading its parameters
+---------------------------------------------
 
-The constructor arguments are settings you request.  The values ``fit`` produces
-are estimates, so they are stored under names that begin with ``estimated_``.
+Estimate a model from data with the classmethod
+:meth:`GMModel.estimate(X, num_clusters="auto", max_clusters=20, covariance_type="full", alpha=0.1, whiten=False, verbose=False, return_info=False) <gmcluster.GMModel.estimate>`.
+It returns a :class:`~gmcluster.GMModel`.  You can also build a model directly from
+parameters you choose with ``GMModel(weights, means, covariances)``.
 
-Constructor:
-:class:`GaussianMixture(num_clusters="auto", max_clusters=20, covariance_type="full", alpha=0.1, whiten=False, verbose=False) <gmcluster.GaussianMixture>`.
+A model holds its parameters in read-only properties:
 
-After ``fit``, the model holds:
+* ``weights`` — cluster weights, shape ``(K,)``.
+* ``means`` — cluster means, shape ``(K, M)``.
+* ``covariances`` — cluster covariance matrices, shape ``(K, M, M)``.
+* ``num_components`` — number of clusters, ``K``.
+* ``num_features`` — number of features, ``M``.
 
-* ``estimated_num_clusters`` — number of clusters in the fitted model, ``K``.
-* ``estimated_weights`` — cluster weights, shape ``(K,)``.
-* ``estimated_means`` — cluster means, shape ``(K, M)``.
-* ``estimated_covariances`` — cluster covariance matrices, shape ``(K, M, M)``.
-* ``mdl`` — MDL value of the fitted model.
-* ``mdl_path`` — the ``(K, MDL)`` pairs for every order visited during the search.
-* ``converged``, ``num_iterations`` — fit diagnostics.
+Call ``set_parameters(weights, means, covariances)`` to replace the parameters in
+place.
 
-The fitted model provides these methods:
+Pass ``return_info=True`` to ``estimate`` to also receive an
+:class:`~gmcluster.EstimationInfo` record that describes the estimation:
+``num_clusters`` (the order chosen), ``mdl`` (the description length at that order),
+``mdl_path`` (the ``(K, MDL)`` pairs for every order visited), ``converged``, and
+``num_iterations``.
+
+A model provides these methods:
 
 * ``classify(X)`` — most-likely cluster index for each point, shape ``(N,)``.
 * ``posterior(X)`` — ``P(cluster | x)`` for each point, shape ``(N, K)``, rows sum to 1.
-* ``log_likelihood(X)`` — per-point log density ``log p(x)``, shape ``(N,)``.  Fit one
+* ``log_density(X)`` — per-point log density ``log p(x)``, shape ``(N,)``.  Estimate one
   model per class and label each point by the class with the higher value to do
   maximum-likelihood classification.
-* ``sample(num_samples, rng, with_labels)`` — draw points from the fitted mixture.
-* ``split_clusters()`` — return one single-cluster model per component, for use with
-  other segmentation packages.
+* ``sample(num_samples, rng, with_labels)`` — draw points from the mixture.
+* ``split()`` — return one single-cluster model per component, for use with other
+  segmentation packages.
 
 How order selection works
 --------------------------
 
-With ``num_clusters="auto"``, the fit searches over the number of clusters:
+With ``num_clusters="auto"``, the estimation searches over the number of clusters:
 
 1. Start at ``max_clusters``.  Set the means to points drawn from the data and set
    every covariance to the covariance of the whole data set.
@@ -85,7 +91,7 @@ derivation.
 
 .. figure:: fig_mdl_flow.svg
    :width: 45%
-   :alt: flowchart of the fit method
+   :alt: flowchart of order selection
    :align: center
 
-   Order selection in the fit method.
+   Order selection during estimation.

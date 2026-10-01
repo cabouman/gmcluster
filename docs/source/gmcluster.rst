@@ -2,22 +2,29 @@ gmcluster
 -----------
 .. currentmodule:: gmcluster
 
-.. rubric:: **Class:**
+.. rubric:: **Classes:**
 
 .. autosummary::
-   GaussianMixture
+   GMModel
+   EstimationInfo
 
 .. rubric:: **Methods:**
 
 .. autosummary::
-   GaussianMixture.fit
-   GaussianMixture.classify
-   GaussianMixture.posterior
-   GaussianMixture.log_likelihood
-   GaussianMixture.sample
-   GaussianMixture.split_clusters
+   GMModel.estimate
+   GMModel.set_parameters
+   GMModel.sample
+   GMModel.classify
+   GMModel.posterior
+   GMModel.log_density
+   GMModel.split
 
-.. autoclass:: gmcluster.GaussianMixture
+.. autoclass:: gmcluster.GMModel
+   :members:
+   :member-order: bysource
+   :show-inheritance:
+
+.. autoclass:: gmcluster.EstimationInfo
    :members:
    :member-order: bysource
    :show-inheritance:

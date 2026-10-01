@@ -14,8 +14,8 @@ labels each point by its most-likely cluster.
 Steps:
 
 1. Draw 500 points from a Gaussian mixture with 3 clusters.
-2. Fit ``GaussianMixture(num_clusters="auto")`` to the points.  The fit recovers the
-   number of clusters and their parameters.
+2. Call ``GMModel.estimate(X, num_clusters="auto")`` on the points.  The estimation
+   recovers the number of clusters and their parameters.
 3. Call ``classify`` to label each point by its most-likely cluster.
 
 .. figure:: fig_demo1.svg
@@ -23,21 +23,21 @@ Steps:
    :alt: generated samples and unsupervised clustering result
    :align: center
 
-   Left: the generated samples.  Right: the clusters found by the fit.
+   Left: the generated samples.  Right: the clusters found by the estimation.
 
-Demo 2: classification by log-likelihood
------------------------------------------
+Demo 2: classification by log density
+-------------------------------------
 
-``demo/demo_2.py`` fits one mixture per class and classifies test points by
+``demo/demo_2.py`` estimates one mixture per class and classifies test points by
 maximum likelihood.
 
 Steps:
 
 1. Draw data from 2 Gaussian mixtures, each with 3 clusters: a training set from
    each mixture, plus a combined test set.
-2. Fit ``GaussianMixture(num_clusters="auto")`` to each training set, giving one
+2. Call ``GMModel.estimate(X, num_clusters="auto")`` on each training set, giving one
    model per class.
-3. Call ``log_likelihood`` from each model on the test set, and label each test
+3. Call ``log_density`` from each model on the test set, and label each test
    point by the class whose model gives the higher value.
 
 .. figure:: fig_demo2.svg

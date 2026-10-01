@@ -21,26 +21,26 @@ To install from source (for development), clone the repository and do an editabl
 Quick Start
 -----------
 
-The package provides one class, ``GaussianMixture``.  Fit it to your data, read the
-estimated parameters, then classify points or draw new samples.
+The package provides one class, ``GMModel``.  Estimate a model from your data, read
+its parameters, then classify points or draw new samples.
 
 .. code-block:: python
 
     import numpy as np
-    from gmcluster import GaussianMixture
+    from gmcluster import GMModel
 
     X = np.random.default_rng(0).standard_normal((500, 2))
 
-    # Fit the mixture; "auto" selects the number of clusters by MDL.
-    gm = GaussianMixture(num_clusters="auto").fit(X)
+    # Estimate the mixture; "auto" selects the number of clusters by MDL.
+    gm = GMModel.estimate(X, num_clusters="auto")
 
-    print(gm.estimated_num_clusters)   # number of clusters found
-    print(gm.estimated_weights)        # shape (K,)
-    print(gm.estimated_means)          # shape (K, M)
-    print(gm.estimated_covariances)    # shape (K, M, M)
+    print(gm.num_components)   # number of clusters found
+    print(gm.weights)          # shape (K,)
+    print(gm.means)            # shape (K, M)
+    print(gm.covariances)      # shape (K, M, M)
 
-    labels = gm.classify(X)            # most-likely cluster per point, shape (N,)
-    new_points = gm.sample(100)        # draw 100 samples from the fitted mixture
+    labels = gm.classify(X)    # most-likely cluster per point, shape (N,)
+    new_points = gm.sample(100)  # draw 100 samples from the mixture
 
 Running the demos
 -----------------

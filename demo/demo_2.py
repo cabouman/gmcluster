@@ -1,22 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from gmcluster import GaussianMixture
+from gmcluster import GMModel
 
 """
-Demo of GaussianMixture for binary classification: fit one mixture per class,
-then label test points by the class with the higher log-likelihood.
+Demo of GMModel for binary classification: estimate one mixture per class,
+then label test points by the class with the higher log-density.
 """
-
-
-def sample_mixture(mu, R, pb, N, rng):
-    """Draw N points from a Gaussian mixture with the given means, covariances, and weights."""
-    labels = rng.choice(len(pb), size=N, p=pb)
-    X = np.empty((N, mu.shape[1]))
-    for k in range(len(pb)):
-        idx = np.nonzero(labels == k)[0]
-        L = np.linalg.cholesky(R[k])
-        X[idx] = mu[k] + rng.standard_normal((idx.size, mu.shape[1])) @ L.T
-    return X
 
 
 # Ground-truth mixtures used to generate the demo data (same weights/covariances for both classes).
@@ -31,10 +20,12 @@ mu_class0 = np.array([[2.0, 2.0], [-2.0, -2.0], [5.5, 2.0]])
 mu_class1 = np.array([[-2.0, 2.0], [2.0, -2.0], [-5.5, 2.0]])
 
 rng = np.random.default_rng(0)
-train_data_0 = sample_mixture(mu_class0, R, pb, N, rng)
-train_data_1 = sample_mixture(mu_class1, R, pb, N, rng)
-test_data_0 = sample_mixture(mu_class0, R, pb, N // 5, rng)
-test_data_1 = sample_mixture(mu_class1, R, pb, N // 5, rng)
+truth_0 = GMModel(pb, mu_class0, R)
+truth_1 = GMModel(pb, mu_class1, R)
+train_data_0 = truth_0.sample(N, rng=rng)
+train_data_1 = truth_1.sample(N, rng=rng)
+test_data_0 = truth_0.sample(N // 5, rng=rng)
+test_data_1 = truth_1.sample(N // 5, rng=rng)
 test_data = np.concatenate((test_data_0, test_data_1), axis=0)
 
 # Plot the generated training data for class 0 and class 1
@@ -53,22 +44,22 @@ plt.xlabel('first component')
 plt.ylabel('second component')
 plt.show()
 
-# Fit one mixture per class.
-class_0 = GaussianMixture(num_clusters="auto").fit(train_data_0)
-class_1 = GaussianMixture(num_clusters="auto").fit(train_data_1)
+# Estimate one mixture per class.
+class_0 = GMModel.estimate(train_data_0, num_clusters="auto")
+class_1 = GMModel.estimate(train_data_1, num_clusters="auto")
 
 for name, gm in [('class 0', class_0), ('class 1', class_1)]:
-    print('\n%s estimated order: %d' % (name, gm.estimated_num_clusters))
-    for i in range(gm.estimated_num_clusters):
+    print('\n%s estimated order: %d' % (name, gm.num_components))
+    for i in range(gm.num_components):
         print('\nCluster: ', i)
-        print('pi: ', gm.estimated_weights[i])
-        print('mean: \n', gm.estimated_means[i])
-        print('covar: \n', gm.estimated_covariances[i], '\n')
+        print('pi: ', gm.weights[i])
+        print('mean: \n', gm.means[i])
+        print('covar: \n', gm.covariances[i], '\n')
 
-# Label each test point by the class with the higher log-likelihood.
+# Label each test point by the class with the higher log-density.
 likelihood = np.zeros((test_data.shape[0], 2))
-likelihood[:, 0] = class_0.log_likelihood(test_data)
-likelihood[:, 1] = class_1.log_likelihood(test_data)
+likelihood[:, 0] = class_0.log_density(test_data)
+likelihood[:, 1] = class_1.log_density(test_data)
 class_list = np.argmax(likelihood, axis=1)
 
 # Plot the classification results

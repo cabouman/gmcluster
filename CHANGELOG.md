@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.4.0 — 2026-10-01
+
+- New `GMModel` class as the single public API. A model holds a Gaussian
+  mixture's parameters and is specified exactly by them.
+- Build a model from parameters you choose with
+  `GMModel(weights, means, covariances)`, or from data with the classmethod
+  `GMModel.estimate(X, num_clusters="auto", max_clusters=20, ...)`, which
+  returns a model. Pass `return_info=True` to also get an `EstimationInfo`
+  record with `num_clusters`, `mdl`, `mdl_path`, `converged`, and
+  `num_iterations`.
+- Read the parameters from `weights`, `means`, `covariances`,
+  `num_components`, and `num_features`. Change them with `set_parameters`.
+- Methods: `sample`, `classify`, `posterior`, `log_density`, and `split`.
+- `classify` returns the most-probable component, the one that maximizes the
+  posterior p(component | x).
+
 ## v0.3.0 — 2026-09-30
 
 - New `GaussianMixture` class as the public API. The constructor holds the
