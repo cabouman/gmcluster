@@ -4,8 +4,8 @@
 #   dev_scripts/release.sh 0.3.0rc1     # dry run: publish a pre-release to TestPyPI
 #   dev_scripts/release.sh 0.3.0        # release: fast-forward main, publish to PyPI
 #
-# Requires the gh CLI, logged in.  The PyPI upload still needs your approval of
-# the pypi environment on the workflow run page.
+# Requires the gh CLI, logged in.  GitHub Actions publishes to PyPI with no
+# manual approval step.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -47,6 +47,5 @@ git branch -f main prerelease        # local main to the same commit
 gh release create "v$VERSION" --target main --title "GMCluster v$VERSION" \
   --generate-notes
 echo "Release v$VERSION created.  local and remote main, prerelease, and the"
-echo "v$VERSION tag are all on the same commit."
-echo "Approve the pypi environment (Actions -> the Release run -> Review"
-echo "deployments), then check with:  pip install gmcluster"
+echo "v$VERSION tag are all on the same commit.  GitHub Actions is publishing"
+echo "to PyPI; check in a minute with:  pip install gmcluster"

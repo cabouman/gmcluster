@@ -41,13 +41,9 @@ Release to PyPI
    This stamps the version on ``prerelease``, fast-forwards ``main`` to the same
    commit, and creates the GitHub release tagged ``v0.3.0``.  Afterwards
    ``main``, ``prerelease``, and the ``v0.3.0`` tag are all on the same commit.
-   GitHub Actions builds the package and then pauses for your approval.
+   GitHub Actions then builds the package and publishes it to PyPI.
 
-2. Approve the upload on GitHub: open the **Actions** tab, click the running
-   **Release** workflow, click **Review deployments**, check the **pypi** box,
-   and click **Approve and deploy**.
-
-3. Confirm it is live::
+2. Confirm it is live::
 
        pip install gmcluster
 
