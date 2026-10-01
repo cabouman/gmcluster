@@ -1,44 +1,23 @@
 #!/bin/bash
-# Run one stage of the release procedure.
+# Run the release procedure.
 #
-#   dev_scripts/release.sh 0.3.0rc1           # rc:   publish a pre-release to TestPyPI
-#   dev_scripts/release.sh 0.3.0              # final: open the pull request to main
-#   dev_scripts/release.sh 0.3.0 --publish    # after main advances: publish to PyPI
+#   dev_scripts/release.sh 0.3.0rc1     # dry run: publish a pre-release to TestPyPI
+#   dev_scripts/release.sh 0.3.0        # release: fast-forward main, publish to PyPI
 #
-# Requires the gh CLI, logged in.  The PyPI upload still needs approval of the
-# pypi environment on the workflow run page.
+# Requires the gh CLI, logged in.  The PyPI upload still needs your approval of
+# the pypi environment on the workflow run page.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-VERSION="${1:?usage: release.sh X.Y.Z[rcN] [--publish]}"
-PUBLISH="${2:-}"
+VERSION="${1:?usage: release.sh X.Y.Z[rcN]}"
 INIT=gmcluster/__init__.py
 
 case "$VERSION" in
   *rc*) STAGE=rc ;;
   *)    STAGE=final ;;
 esac
-if [[ "$PUBLISH" == "--publish" && "$STAGE" == "rc" ]]; then
-  echo "--publish is for a final version; an rc publishes on its own" >&2
-  exit 2
-fi
 
-# --publish: tag main (which must already carry this version) and let CI publish.
-if [[ "$PUBLISH" == "--publish" ]]; then
-  git fetch -q origin main
-  if ! git show origin/main:$INIT | grep -q "__version__ = '$VERSION'"; then
-    echo "main does not have __version__ = '$VERSION'; merge the pull request first" >&2
-    exit 1
-  fi
-  gh release create "v$VERSION" --target main --title "GMCluster v$VERSION" \
-    --generate-notes
-  echo "Release v$VERSION created.  Approve the pypi environment on the"
-  echo "workflow run page (Actions -> the Release run -> Review deployments),"
-  echo "then check with:  pip install gmcluster"
-  exit 0
-fi
-
-# rc or final: stamp the version on prerelease, commit, and push.
+# Stamp the version on prerelease, commit, and push.
 git checkout -q prerelease
 git pull -q origin prerelease
 sed -i '' "s/^__version__ = '.*'/__version__ = '$VERSION'/" $INIT
@@ -59,14 +38,13 @@ if [[ "$STAGE" == "rc" ]]; then
     --title "GMCluster v$VERSION" --generate-notes
   echo "Pre-release v$VERSION created; the TestPyPI upload is running."
   echo "Check with:  pip install -i https://test.pypi.org/simple/ gmcluster"
-else
-  # main changes only through a pull request, merged on GitHub.
-  if gh pr list --base main --head prerelease --state open --json number -q '.[0].number' | grep -q .; then
-    echo "The pull request from prerelease to main is already open and now carries $VERSION."
-  else
-    gh pr create --base main --head prerelease --title "GMCluster v$VERSION" \
-      --body "Release v$VERSION."
-  fi
-  echo "When the checks pass, merge the pull request on GitHub.  Then run:"
-  echo "  dev_scripts/release.sh $VERSION --publish"
+  exit 0
 fi
+
+# Final release: fast-forward main to prerelease (no merge commit), then tag.
+git push -q origin prerelease:main
+gh release create "v$VERSION" --target main --title "GMCluster v$VERSION" \
+  --generate-notes
+echo "Release v$VERSION created.  main and prerelease are now on the same commit."
+echo "Approve the pypi environment (Actions -> the Release run -> Review"
+echo "deployments), then check with:  pip install gmcluster"
