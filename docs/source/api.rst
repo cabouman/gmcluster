@@ -1,9 +1,10 @@
 API Documentation
 =================
 
-The :class:`~gmcluster.GaussianMixture` class is the full public interface: it fits
-a Gaussian mixture model, selects the number of clusters, and classifies data with
-the fitted model.  Its methods and results are listed below.
+The :class:`~gmcluster.GMModel` class is the full public interface: it holds the
+parameters of a Gaussian mixture, estimates them from data, selects the number of
+clusters, and classifies new points.  Its methods are listed below, along with the
+:class:`~gmcluster.EstimationInfo` record returned by estimation.
 
 .. toctree::
    :titlesonly:

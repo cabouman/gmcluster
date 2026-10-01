@@ -1,8 +1,8 @@
-# The fit recovers the true cluster means on well-separated data.
+# The estimate recovers the true cluster means on well-separated data.
 
 import numpy as np
 
-from gmcluster import GaussianMixture
+from gmcluster import GMModel
 
 
 def make_mixture(seed=0, n_per=300):
@@ -13,19 +13,19 @@ def make_mixture(seed=0, n_per=300):
     return data, true_means
 
 
-def match_nearest(true_means, estimated_means):
+def match_nearest(true_means, means):
     """For each true mean, the distance to its nearest estimated mean."""
     dists = []
     for t in true_means:
-        d = np.linalg.norm(estimated_means - t, axis=1)
+        d = np.linalg.norm(means - t, axis=1)
         dists.append(d.min())
     return np.array(dists)
 
 
 def test_recover_means():
     data, true_means = make_mixture(seed=0)
-    gm = GaussianMixture(num_clusters="auto", max_clusters=6).fit(data)
+    gm = GMModel.estimate(data, num_clusters="auto", max_clusters=6)
 
-    assert gm.estimated_num_clusters == 3
+    assert gm.num_components == 3
     # Every true center has an estimated center close to it.
-    assert np.all(match_nearest(true_means, gm.estimated_means) < 0.5)
+    assert np.all(match_nearest(true_means, gm.means) < 0.5)

@@ -1,4 +1,4 @@
-__version__ = '0.3.0'
-from .gmcluster import GaussianMixture
+__version__ = '0.4.0'
+from .gmcluster import GMModel, EstimationInfo
 
-__all__ = ["GaussianMixture"]
+__all__ = ["GMModel", "EstimationInfo"]

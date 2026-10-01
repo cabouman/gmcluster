@@ -4,43 +4,219 @@
 
 import copy
 import logging
+from dataclasses import dataclass
 
 import numpy as np
 
 logger = logging.getLogger("gmcluster")
 
-# Names guarded before fit. Reading any of these on an unfitted model raises.
-_ESTIMATE_NAMES = (
-    "estimated_num_clusters",
-    "estimated_weights",
-    "estimated_means",
-    "estimated_covariances",
-    "mdl",
-    "mdl_path",
-    "converged",
-    "num_iterations",
-)
 
+@dataclass
+class EstimationInfo:
+    """Data record returned by GMModel.estimate(..., return_info=True), holding the details of how the model was estimated.
 
-class GaussianMixture:
-    """Gaussian mixture model fit by EM with MDL order selection.
-
-    The constructor holds settings. fit(X) runs EM and stores the results in
-    the estimated_* attributes and the diagnostics (mdl, mdl_path, converged,
-    num_iterations). Reading any of those before fit raises.
+    Fields:
+        num_clusters: the order chosen, K.
+        mdl: the description length at the chosen order.
+        mdl_path: list of (K, MDL) pairs, one per order visited, ascending K.
+        converged: whether EM converged.
+        num_iterations: number of EM iterations at the chosen order.
     """
 
-    def __init__(self, num_clusters="auto", max_clusters=20, covariance_type="full",
-                 alpha=0.1, whiten=False, verbose=False):
-        """Store settings after validating them.
+    num_clusters: int
+    mdl: float
+    mdl_path: list
+    converged: bool
+    num_iterations: int
+
+
+class GMModel:
+    """A Gaussian mixture distribution, defined by its component weights, means, and covariances.
+
+    A model holds these parameters and provides the operations that depend on
+    them: draw samples, evaluate the density, compute posteriors, classify
+    points, and split into single components. Build a model from parameters you
+    choose, or estimate one from data.
+
+    .. code-block:: python
+
+        import numpy as np
+        from gmcluster import GMModel
+
+        # Estimate a model from data; "auto" chooses the number of components by MDL.
+        model = GMModel.estimate(X, num_clusters="auto")
+        labels = model.classify(X)      # most-probable component per point
+        P = model.posterior(X)          # p(component | x)
+
+        # Build a model from chosen parameters, then sample from it.
+        truth = GMModel(weights=[0.6, 0.4],
+                        means=[[0, 0], [5, 5]],
+                        covariances=[np.eye(2), 0.5 * np.eye(2)])
+        X_sim = truth.sample(1000, rng=0)   # simulate data from a known model
+
+    Args:
+        weights: shape (K,), each positive and summing to 1.
+        means: shape (K, M).
+        covariances: shape (K, M, M), each symmetric and invertible.
+
+    Raises:
+        ValueError: on any shape or condition violation.
+    """
+
+    def __init__(self, weights, means, covariances):
+        """Build a model from parameters; see the class for the arguments."""
+        self._set(weights, means, covariances)
+
+    def _set(self, weights, means, covariances):
+        """Validate parameters, build the internal mixture, store the arrays."""
+        weights, means, covariances = _check_parameters(weights, means, covariances)
+        self._mixture = _mixture_from_parameters(weights, means, covariances)
+        self._weights = weights
+        self._means = means
+        self._covariances = covariances
+
+    @property
+    def weights(self):
+        """Return the component weights, shape (K,)."""
+        return self._weights
+
+    @property
+    def means(self):
+        """Return the component means, shape (K, M)."""
+        return self._means
+
+    @property
+    def covariances(self):
+        """Return the component covariances, shape (K, M, M)."""
+        return self._covariances
+
+    @property
+    def num_components(self):
+        """Return the number of components, K."""
+        return self._mixture.K
+
+    @property
+    def num_features(self):
+        """Return the number of features, M."""
+        return self._mixture.M
+
+    def set_parameters(self, weights, means, covariances):
+        """Replace the model's parameters in place, with the same validation as the constructor.
 
         Args:
+            weights: shape (K,), each positive and summing to 1.
+            means: shape (K, M).
+            covariances: shape (K, M, M), each symmetric and invertible.
+
+        Raises:
+            ValueError: on any shape or condition violation.
+        """
+        self._set(weights, means, covariances)
+
+    def sample(self, num_samples=1, rng=None, with_labels=False):
+        """Draw samples from the mixture.
+
+        Args:
+            num_samples: number of samples to draw.
+            rng: a numpy Generator or seed for reproducibility.
+            with_labels: also return the component index of each sample.
+
+        Returns:
+            X of shape (num_samples, M), or (X, labels) with labels of shape
+            (num_samples,) if with_labels is True.
+        """
+        rng = np.random.default_rng(rng)
+        weights = self.weights
+        means = self.means
+        covs = self.covariances
+        M = means.shape[1]
+
+        labels = rng.choice(len(weights), size=num_samples, p=weights)
+        samples = np.empty((num_samples, M))
+
+        # Draw each component's points from its Gaussian via a symmetric-eigen factor.
+        for k in range(len(weights)):
+            idx = np.nonzero(labels == k)[0]
+            if idx.size == 0:
+                continue
+            eigvals, eigvecs = np.linalg.eigh(covs[k])
+            eigvals = np.clip(eigvals, 0.0, None)
+            factor = eigvecs * np.sqrt(eigvals)
+            z = rng.standard_normal((idx.size, M))
+            samples[idx] = means[k] + z @ factor.T
+
+        if with_labels:
+            return samples, labels
+        return samples
+
+    def posterior(self, X):
+        """Return the posterior probability of each component for each point, p(component | x).
+
+        Each row sums to 1.
+
+        Args:
+            X: shape (N, M).
+
+        Returns:
+            shape (N, K).
+        """
+        X = _check_data(X, n_features=self._mixture.M)
+        _, _ = E_step(self._mixture, X)
+        return np.array(self._mixture.pnk)
+
+    def classify(self, X):
+        """Return the most-probable component for each point: the component that maximizes the posterior p(component | x).
+
+        Args:
+            X: shape (N, M).
+
+        Returns:
+            shape (N,).
+        """
+        return np.argmax(self.posterior(X), axis=1)
+
+    def log_density(self, X):
+        """Return the log of the mixture density, log p(x), for each point.
+
+        Args:
+            X: shape (N, M).
+
+        Returns:
+            shape (N,).
+        """
+        X = _check_data(X, n_features=self._mixture.M)
+        return _class_log_likelihood(self._mixture, X).ravel()
+
+    def split(self):
+        """Return the components as a list of K single-component models, each with weight 1.
+
+        Use it to take one component at a time, for example to pass each to
+        another routine.
+
+        Returns:
+            a list of K GMModel objects.
+        """
+        K = self._mixture.K
+        return [GMModel(np.array([1.0]), self.means[k:k + 1], self.covariances[k:k + 1])
+                for k in range(K)]
+
+    @classmethod
+    def estimate(cls, X, num_clusters="auto", max_clusters=20, covariance_type="full",
+                 alpha=0.1, whiten=False, verbose=False, return_info=False):
+        """Estimate a model from data by EM with MDL order selection and return a new model (a classmethod).
+
+        Args:
+            X: (num_points, num_features) 2D float array of observations.
             num_clusters: "auto" to select the order by MDL, or a positive int to fix it.
             max_clusters: positive int, the ceiling for the "auto" search.
             covariance_type: "full" or "diagonal".
             alpha: covariance regularization, 0 < alpha <= 1 (1 spherical, ->0 elliptical).
-            whiten: decorrelate coordinates before clustering.
+            whiten: decorrelate coordinates before estimation.
             verbose: report progress through the logging module.
+            return_info: if True, return (model, info) with an EstimationInfo.
+
+        Returns:
+            A GMModel, or (GMModel, EstimationInfo) if return_info is True.
         """
         # num_clusters: "auto" or a positive int (bool is not a count).
         if isinstance(num_clusters, str):
@@ -75,155 +251,105 @@ class GaussianMixture:
             raise TypeError("whiten must be a bool")
         if not isinstance(verbose, bool):
             raise TypeError("verbose must be a bool")
+        if not isinstance(return_info, bool):
+            raise TypeError("return_info must be a bool")
 
-        self.num_clusters = num_clusters
-        self.max_clusters = int(max_clusters)
-        self.covariance_type = covariance_type
-        self.alpha = float(alpha)
-        self.whiten = whiten
-        self.verbose = verbose
-
-        # Internal estimator kind ("full" or "diag") and the fitted engine mixture.
-        self._est_kind = est_kind
-        self._mixture = None
-        self._fitted = False
-
-    def __getattr__(self, name):
-        """Raise a clear error when an estimate is read before fit."""
-        # __getattr__ runs only when normal lookup fails, i.e. before fit sets these.
-        if name in _ESTIMATE_NAMES:
-            raise RuntimeError("GaussianMixture is not fitted; call fit(X) first")
-        raise AttributeError(name)
-
-    def fit(self, X):
-        """Fit the mixture to X by EM and store the estimates. Returns self.
-
-        Args:
-            X: (num_points, num_features) 2D float array of observations.
-        """
         X = _check_data(X)
 
-        if self.num_clusters == "auto":
-            init_K = self.max_clusters
+        if num_clusters == "auto":
+            init_K = int(max_clusters)
             final_K = 0
         else:
-            final_K = int(self.num_clusters)
-            init_K = max(self.max_clusters, final_K)
+            final_K = int(num_clusters)
+            init_K = max(int(max_clusters), final_K)
 
-        mixture, mdl_path = _fit_mixture(X, init_K, final_K, self._est_kind,
-                                         self.alpha, self.whiten, self.verbose)
+        mixture, mdl_path = _fit_mixture(X, init_K, final_K, est_kind,
+                                         float(alpha), whiten, verbose)
 
-        self._populate(mixture, mdl_path)
-        return self
-
-    def _populate(self, mixture, mdl_path):
-        """Set the estimated_* attributes and diagnostics from an engine mixture."""
         clusters = mixture.cluster
-        self._mixture = mixture
-        self.estimated_num_clusters = int(mixture.K)
-        self.estimated_weights = np.array([float(c.pb) for c in clusters])
-        self.estimated_means = np.array([c.mu.ravel() for c in clusters])
-        self.estimated_covariances = np.array([np.asarray(c.R) for c in clusters])
-        self.mdl = mixture.rissanen
-        self.mdl_path = mdl_path
-        self.converged = True
-        self.num_iterations = getattr(mixture, "num_iterations", None)
-        self._fitted = True
+        weights = np.array([float(c.pb) for c in clusters])
+        means = np.array([c.mu.ravel() for c in clusters])
+        covariances = np.array([np.asarray(c.R) for c in clusters])
+        model = cls(weights, means, covariances)
 
-    def _require_fitted(self):
-        if not self._fitted:
-            raise RuntimeError("GaussianMixture is not fitted; call fit(X) first")
-
-    def posterior(self, X):
-        """Return P(cluster | x), shape (N, K), rows summing to 1."""
-        self._require_fitted()
-        X = _check_data(X, n_features=self._mixture.M)
-        _, _ = E_step(self._mixture, X)
-        return np.array(self._mixture.pnk)
-
-    def classify(self, X):
-        """Return the most-likely cluster index per point, shape (N,)."""
-        return np.argmax(self.posterior(X), axis=1)
-
-    def log_likelihood(self, X):
-        """Return the per-point log density log p(x), shape (N,)."""
-        self._require_fitted()
-        X = _check_data(X, n_features=self._mixture.M)
-        return _class_log_likelihood(self._mixture, X).ravel()
-
-    def sample(self, num_samples=1, rng=None, with_labels=False):
-        """Draw samples from the fitted mixture.
-
-        Args:
-            num_samples: number of samples to draw.
-            rng: a numpy Generator or seed for reproducibility.
-            with_labels: also return the component index of each sample.
-
-        Returns:
-            X of shape (num_samples, M), or (X, labels) with labels of shape
-            (num_samples,) if with_labels is True.
-        """
-        self._require_fitted()
-        rng = np.random.default_rng(rng)
-        weights = self.estimated_weights
-        means = self.estimated_means
-        covs = self.estimated_covariances
-        M = means.shape[1]
-
-        labels = rng.choice(len(weights), size=num_samples, p=weights)
-        samples = np.empty((num_samples, M))
-
-        # Draw each component's points from its Gaussian via a symmetric-eigen factor.
-        for k in range(len(weights)):
-            idx = np.nonzero(labels == k)[0]
-            if idx.size == 0:
-                continue
-            eigvals, eigvecs = np.linalg.eigh(covs[k])
-            eigvals = np.clip(eigvals, 0.0, None)
-            factor = eigvecs * np.sqrt(eigvals)
-            z = rng.standard_normal((idx.size, M))
-            samples[idx] = means[k] + z @ factor.T
-
-        if with_labels:
-            return samples, labels
-        return samples
-
-    def split_clusters(self):
-        """Return a list of single-cluster GaussianMixture models, one per component.
-
-        Each returned model is fitted with one cluster (weight 1) and is usable
-        with classify, posterior, log_likelihood, and sample. Kept for use
-        alongside other segmentation packages.
-        """
-        self._require_fitted()
-        parts = []
-        for k in range(self._mixture.K):
-            single = MixtureObj()
-            single.K = 1
-            single.M = self._mixture.M
-            single.cluster = [copy.deepcopy(self._mixture.cluster[k])]
-            single.D_reg = self._mixture.D_reg
-            # Renormalize so the single component is a proper order-1 density (weight 1).
-            single = cluster_normalize(single)
-            single.rissanen = None
-            single.loglikelihood = None
-            single.num_iterations = None
-
-            child = GaussianMixture(num_clusters=1, max_clusters=self.max_clusters,
-                                    covariance_type=self.covariance_type, alpha=self.alpha,
-                                    whiten=self.whiten, verbose=self.verbose)
-            child._populate(single, mdl_path=[(1, None)])
-            child.mdl = None
-            child.converged = True
-            parts.append(child)
-        return parts
+        if return_info:
+            info = EstimationInfo(
+                num_clusters=int(mixture.K),
+                mdl=mixture.rissanen,
+                mdl_path=mdl_path,
+                converged=True,
+                num_iterations=getattr(mixture, "num_iterations", None),
+            )
+            return model, info
+        return model
 
     def __repr__(self):
-        if self._fitted:
-            return "GaussianMixture(clusters={}, dims={}, mdl={})".format(
-                self.estimated_num_clusters, self._mixture.M, self.mdl)
-        return "GaussianMixture(num_clusters={!r}, covariance_type={!r}, unfitted)".format(
-            self.num_clusters, self.covariance_type)
+        return "GMModel(num_components={}, num_features={})".format(
+            self._mixture.K, self._mixture.M)
+
+
+def _check_parameters(weights, means, covariances):
+    """Validate mixture parameters and return them as float ndarrays.
+
+    Checks weights shape (K,) with positive entries summing to 1 within 1e-6,
+    means shape (K, M), and covariances shape (K, M, M) with each matrix
+    symmetric and invertible. Raises ValueError on any violation.
+    """
+    weights = np.asarray(weights, dtype=float)
+    means = np.asarray(means, dtype=float)
+    covariances = np.asarray(covariances, dtype=float)
+
+    if weights.ndim != 1:
+        raise ValueError("weights must have shape (K,)")
+    K = weights.shape[0]
+    if K < 1:
+        raise ValueError("weights must have at least one component")
+    if not np.all(weights > 0):
+        raise ValueError("weights must all be positive")
+    if abs(np.sum(weights) - 1.0) > 1e-6:
+        raise ValueError("weights must sum to 1 within 1e-6")
+
+    if means.ndim != 2 or means.shape[0] != K:
+        raise ValueError("means must have shape (K, M)")
+    M = means.shape[1]
+
+    if covariances.shape != (K, M, M):
+        raise ValueError("covariances must have shape (K, M, M)")
+    for k in range(K):
+        R = covariances[k]
+        if not np.allclose(R, R.T):
+            raise ValueError("each covariance must be symmetric")
+        try:
+            np.linalg.inv(R)
+        except np.linalg.LinAlgError:
+            raise ValueError("each covariance must be invertible")
+
+    return weights, means, covariances
+
+
+def _mixture_from_parameters(weights, means, covariances):
+    """Build an engine MixtureObj from validated parameters.
+
+    Fills each cluster's weight, mean (as an (M, 1) column), and covariance,
+    then calls cluster_normalize to fill invR and const.
+    """
+    K = weights.shape[0]
+    M = means.shape[1]
+
+    mixture = MixtureObj()
+    mixture.K = K
+    mixture.M = M
+    mixture.cluster = []
+    for k in range(K):
+        cluster_obj = ClusterObj()
+        cluster_obj.pb = float(weights[k])
+        cluster_obj.mu = means[k].reshape(M, 1)
+        cluster_obj.R = covariances[k]
+        mixture.cluster.append(cluster_obj)
+    mixture.D_reg = None
+    mixture = cluster_normalize(mixture)
+
+    return mixture
 
 
 def _check_data(X, n_features=None):

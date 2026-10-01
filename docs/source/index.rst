@@ -16,7 +16,7 @@ data, and picks the number of clusters for you.
 **Key features:**
 
 * Estimates the number of clusters automatically by minimum description length (MDL), so you do not have to guess K.
-* One-line ``fit`` on your data, then ``classify``, ``posterior``, ``log_likelihood``, or ``sample``.
+* One-line ``estimate`` on your data, then ``classify``, ``posterior``, ``log_density``, or ``sample``.
 * Full or diagonal cluster covariances.
 * Optional coordinate whitening to better condition the problem.
 * Models overlapping clusters with an EM Gaussian mixture, not hard k-means.
@@ -75,7 +75,7 @@ data, and picks the number of clusters for you.
       :link: api
       :link-type: doc
 
-      The ``GaussianMixture`` class and its methods.
+      The ``GMModel`` class and its methods.
 
    .. grid-item-card:: :material-regular:`science;2em` Demos
       :class-card: gmc-nav

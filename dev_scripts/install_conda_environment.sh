@@ -9,6 +9,6 @@ if [ "$CONDA_DEFAULT_ENV"==gmcluster ]; then
 fi
 
 conda remove env --name gmcluster --all
-conda create --name gmcluster python=3.9
+conda create --name gmcluster python=3.11
 conda activate gmcluster
 
