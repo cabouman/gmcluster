@@ -13,7 +13,7 @@ logger = logging.getLogger("gmcluster")
 
 @dataclass
 class EstimationInfo:
-    """Record describing an estimation run returned by GMModel.estimate.
+    """Data record returned by GMModel.estimate(..., return_info=True), holding the details of how the model was estimated.
 
     Fields:
         num_clusters: the order chosen, K.
@@ -31,25 +31,40 @@ class EstimationInfo:
 
 
 class GMModel:
-    """Gaussian mixture distribution defined by its weights, means, and covariances.
+    """A Gaussian mixture distribution, defined by its component weights, means, and covariances.
 
-    A model holds the parameters and provides the operations on the
-    distribution: sample, classify, posterior, log_density, and split. Build a
-    model from chosen parameters with the constructor, or from data with the
-    GMModel.estimate classmethod.
+    A model holds these parameters and provides the operations that depend on
+    them: draw samples, evaluate the density, compute posteriors, classify
+    points, and split into single components. Build a model from parameters you
+    choose, or estimate one from data.
+
+    .. code-block:: python
+
+        import numpy as np
+        from gmcluster import GMModel
+
+        # Estimate a model from data; "auto" chooses the number of components by MDL.
+        model = GMModel.estimate(X, num_clusters="auto")
+        labels = model.classify(X)      # most-probable component per point
+        P = model.posterior(X)          # p(component | x)
+
+        # Build a model from chosen parameters, then sample from it.
+        truth = GMModel(weights=[0.6, 0.4],
+                        means=[[0, 0], [5, 5]],
+                        covariances=[np.eye(2), 0.5 * np.eye(2)])
+        X_sim = truth.sample(1000, rng=0)   # simulate data from a known model
+
+    Args:
+        weights: shape (K,), each positive and summing to 1.
+        means: shape (K, M).
+        covariances: shape (K, M, M), each symmetric and invertible.
+
+    Raises:
+        ValueError: on any shape or condition violation.
     """
 
     def __init__(self, weights, means, covariances):
-        """Build a model from parameters, validating shapes and conditions.
-
-        Args:
-            weights: shape (K,), each positive, summing to 1.
-            means: shape (K, M).
-            covariances: shape (K, M, M), each symmetric and invertible.
-
-        Raises:
-            ValueError: on any shape or condition violation.
-        """
+        """Build a model from parameters; see the class for the arguments."""
         self._set(weights, means, covariances)
 
     def _set(self, weights, means, covariances):
@@ -86,7 +101,16 @@ class GMModel:
         return self._mixture.M
 
     def set_parameters(self, weights, means, covariances):
-        """Replace the parameters in place, with the constructor's validation."""
+        """Replace the model's parameters in place, with the same validation as the constructor.
+
+        Args:
+            weights: shape (K,), each positive and summing to 1.
+            means: shape (K, M).
+            covariances: shape (K, M, M), each symmetric and invertible.
+
+        Raises:
+            ValueError: on any shape or condition violation.
+        """
         self._set(weights, means, covariances)
 
     def sample(self, num_samples=1, rng=None, with_labels=False):
@@ -126,22 +150,52 @@ class GMModel:
         return samples
 
     def posterior(self, X):
-        """Return p(component | x), shape (N, K), rows summing to 1."""
+        """Return the posterior probability of each component for each point, p(component | x).
+
+        Each row sums to 1.
+
+        Args:
+            X: shape (N, M).
+
+        Returns:
+            shape (N, K).
+        """
         X = _check_data(X, n_features=self._mixture.M)
         _, _ = E_step(self._mixture, X)
         return np.array(self._mixture.pnk)
 
     def classify(self, X):
-        """Return the most-probable component index per point, shape (N,)."""
+        """Return the most-probable component for each point: the component that maximizes the posterior p(component | x).
+
+        Args:
+            X: shape (N, M).
+
+        Returns:
+            shape (N,).
+        """
         return np.argmax(self.posterior(X), axis=1)
 
     def log_density(self, X):
-        """Return the per-point log density log p(x), shape (N,)."""
+        """Return the log of the mixture density, log p(x), for each point.
+
+        Args:
+            X: shape (N, M).
+
+        Returns:
+            shape (N,).
+        """
         X = _check_data(X, n_features=self._mixture.M)
         return _class_log_likelihood(self._mixture, X).ravel()
 
     def split(self):
-        """Return a list of K single-component GMModel objects, each with weight 1."""
+        """Return the components as a list of K single-component models, each with weight 1.
+
+        Use it to take one component at a time, for example to pass each to
+        another routine.
+
+        Returns:
+            a list of K GMModel objects.
+        """
         K = self._mixture.K
         return [GMModel(np.array([1.0]), self.means[k:k + 1], self.covariances[k:k + 1])
                 for k in range(K)]
@@ -149,7 +203,7 @@ class GMModel:
     @classmethod
     def estimate(cls, X, num_clusters="auto", max_clusters=20, covariance_type="full",
                  alpha=0.1, whiten=False, verbose=False, return_info=False):
-        """Estimate a model from data by EM with MDL order selection.
+        """Estimate a model from data by EM with MDL order selection and return a new model (a classmethod).
 
         Args:
             X: (num_points, num_features) 2D float array of observations.
