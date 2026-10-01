@@ -1,17 +1,14 @@
 #!/bin/bash
-# This script installs everything from scratch
+# Full clean install: remove, recreate the env, install, build docs.
+set -eo pipefail
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/config.sh"
 
-yes | source remove_package.sh
-yes | source install_conda_environment.sh
+bash "$SCRIPT_DIR/remove_package.sh"
+bash "$SCRIPT_DIR/install_empty_conda_environment.sh"
+bash "$SCRIPT_DIR/install_package.sh"
+bash "$SCRIPT_DIR/build_docs.sh"
 
-yes | source install_package.sh
-yes | source build_docs.sh
-
-red=`tput setaf 1`
-reset=`tput sgr0`
-
-echo " "
-echo "Use"
-echo "${red}   conda activate gmcluster   ${reset}"
-echo "to activate the conda environment."
-echo " "
+red=$(tput setaf 1); reset=$(tput sgr0)
+echo
+echo "Use  ${red}conda activate $NAME${reset}  to activate the environment."
