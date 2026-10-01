@@ -7,4 +7,6 @@ source "$SCRIPT_DIR/config.sh"
 source "$(conda info --base)/etc/profile.d/conda.sh"
 
 conda activate "$NAME"
-pytest "$REPO_ROOT/tests"
+# Use `python -m pytest` so the active environment's pytest is used, not one
+# earlier on PATH.
+python -m pytest -ra "$REPO_ROOT/tests"
